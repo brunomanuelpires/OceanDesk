@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Arduino
+*.tmp
+
+# VS Code
+.vscode/
+
+# Build folders
+build/
+dist/
+
+# Logs
+*.log
