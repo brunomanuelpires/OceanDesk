@@ -7,6 +7,7 @@
 #include "services/ClockService.h"
 #include "lvgl_v8_port.h"
 #include "core/widgets/Header.h"
+#include "services/WiFiService.h"
 
 using namespace esp_panel::drivers;
 using namespace esp_panel::board;
@@ -64,6 +65,9 @@ void setup()
     // Inicializa o relógio
     ClockService::begin();
 
+    // Inicializa o Wi-Fi
+    WiFiService::begin();
+
     Serial.println("Creating OceanDesk UI...");
 
     lvgl_port_lock(-1);
@@ -77,6 +81,7 @@ void setup()
 
 void loop()
 {
+    WiFiService::update();
     ClockService::update();
 
     lvgl_port_lock(-1);
