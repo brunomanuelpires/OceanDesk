@@ -1,8 +1,6 @@
 #include "Header.h"
-
 #include "../../config/Theme.h"
 #include "../../services/ClockService.h"
-
 #include <lvgl.h>
 
 lv_obj_t *Header::timeLabel = nullptr;
@@ -97,27 +95,21 @@ void Header::refresh()
         return;
     }
 
-    char timeBuffer[6];
-    char dateBuffer[64];
+    String currentTime = ClockService::getTime();
 
-    ClockService::getTime(
-        timeBuffer,
-        sizeof(timeBuffer)
-    );
-
-    ClockService::getDate(
-        dateBuffer,
-        sizeof(dateBuffer)
-    );
+    String currentDate =
+        ClockService::getWeekday() +
+        ", " +
+        ClockService::getDate();
 
     lv_label_set_text(
         timeLabel,
-        timeBuffer
+        currentTime.c_str()
     );
 
     lv_label_set_text(
         dateLabel,
-        dateBuffer
+        currentDate.c_str()
     );
 }
 

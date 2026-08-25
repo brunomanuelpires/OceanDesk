@@ -1,15 +1,14 @@
 #pragma once
 
-#include <stddef.h>
+#include <Arduino.h>
 
 class ClockService
 {
 public:
     static void begin();
+    static void update();
 
-    static void getTime(char *buffer, size_t size);
-    static void getDate(char *buffer, size_t size);
-
-private:
-    static void setTimeFromBuild();
+    static String getTime();
+    static String getDate();
+    static String getWeekday();
 };

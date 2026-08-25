@@ -5,8 +5,8 @@
 #include "ui/Dashboard.h"
 #include "core/ScreenManager.h"
 #include "services/ClockService.h"
-
 #include "lvgl_v8_port.h"
+#include "core/widgets/Header.h"
 
 using namespace esp_panel::drivers;
 using namespace esp_panel::board;
@@ -77,5 +77,11 @@ void setup()
 
 void loop()
 {
+    ClockService::update();
+
+    lvgl_port_lock(-1);
+    Header::refresh();
+    lvgl_port_unlock();
+
     delay(1000);
 }
