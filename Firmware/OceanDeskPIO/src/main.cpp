@@ -8,6 +8,8 @@
 #include "lvgl_v8_port.h"
 #include "core/widgets/Header.h"
 #include "services/WiFiService.h"
+#include "services/NTPService.h"
+#include "core/EventDispatcher.h"
 
 using namespace esp_panel::drivers;
 using namespace esp_panel::board;
@@ -68,10 +70,13 @@ void setup()
     // Inicializa o Wi-Fi
     WiFiService::begin();
 
+    NTPService::begin();
+
     Serial.println("Creating OceanDesk UI...");
 
     lvgl_port_lock(-1);
 
+    EventDispatcher::begin();
     ScreenManager::showHome();
 
     lvgl_port_unlock();
@@ -83,9 +88,10 @@ void loop()
 {
     WiFiService::update();
     ClockService::update();
+    NTPService::update();
 
     lvgl_port_lock(-1);
-    Header::refresh();
+    EventDispatcher::refresh();
     lvgl_port_unlock();
 
     delay(1000);
