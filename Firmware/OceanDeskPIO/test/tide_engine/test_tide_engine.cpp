@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 
 namespace
@@ -22,13 +23,40 @@ int main()
 {
     const TideEngine engine(TideDevelopmentData::nazare);
     assert(engine.valid());
-    assert(engine.station().constituentCount == 8);
+    assert(engine.station().constituentCount == 50);
     assert(engine.station().developmentOnly);
 
+    // The generator keeps these historical major constituents first so this
+    // station can quantify the effect of expanding the same dataset to all 50.
+    const TideHarmonicStation major8Station = {
+        "nazare-major-8-test-baseline",
+        "Nazare major 8 test baseline",
+        engine.station().source,
+        engine.station().license,
+        engine.station().constituents,
+        8,
+        true,
+    };
+    const TideEngine major8Engine(major8Station);
+
     // Fixed UTC instants protect the phase and astronomical-argument convention.
-    expectNear(engine.predictHeight(1767225600), 1.146152, 0.00001);  // 2026-01-01 00:00:00Z
-    expectNear(engine.predictHeight(1767247200), -1.104048, 0.00001); // 2026-01-01 06:00:00Z
-    expectNear(engine.predictHeight(1767268800), 1.015833, 0.00001);  // 2026-01-01 12:00:00Z
+    const int64_t fixedTimestamps[] = {1767225600, 1767247200, 1767268800};
+    const double expectedMajor8[] = {1.146152, -1.104048, 1.015833};
+    const double expectedFull50[] = {1.155426, -1.174631, 1.05407};
+    double largestFixedDifference = 0.0;
+    for (size_t index = 0; index < 3; ++index)
+    {
+        const double major8 = major8Engine.predictHeight(fixedTimestamps[index]);
+        const double full50 = engine.predictHeight(fixedTimestamps[index]);
+        expectNear(major8, expectedMajor8[index], 0.00001);
+        expectNear(full50, expectedFull50[index], 0.00001);
+        const double difference = full50 - major8;
+        largestFixedDifference = std::max(largestFixedDifference, std::abs(difference));
+        std::cout << "8 vs 50 at " << fixedTimestamps[index] << ": "
+                  << std::fixed << std::setprecision(6) << major8 << " m -> " << full50
+                  << " m (delta " << difference << " m)\n";
+    }
+    assert(largestFixedDifference > 0.01);
 
     double minimum = engine.predictHeight(1767225600);
     double maximum = minimum;
@@ -52,6 +80,6 @@ int main()
     assert(!invalidEngine.valid());
     assert(std::isnan(invalidEngine.predictHeight(1767225600)));
 
-    std::cout << "TideEngine sanity tests passed (8 Nazaré development constituents).\n";
+    std::cout << "TideEngine sanity tests passed (50 Nazaré development constituents).\n";
     return 0;
 }

@@ -14,6 +14,7 @@ npm run tides:portugal
 npm run tides:portugal -- --nearest 5
 npm run tides:portugal -- --json
 npm run tides:portugal -- --output tools/tides/generated/portugal-stations.json
+npm run tides:generate-nazare
 npm run test:tides
 ```
 
@@ -37,8 +38,14 @@ storm surge and must not be used for navigation or safety-critical decisions.
 
 ## ESP32 development engine
 
-`src/tides/data/NazareTideData.cpp` embeds eight major Nazaré constituents as a
-small first dataset for `TideEngine`. Nazaré is strictly a development station:
+`src/tides/data/NazareTideData.h/.cpp` are generated from the normalized JSON by
+`npm run tides:generate-nazare`. The generator embeds all 50 Nazaré constituents,
+resolves their Doodson coefficients through the pinned `@neaps/tide-predictor`
+definitions, and keeps the original eight major constituents first to support a
+host-side 8-versus-50 regression comparison. `npm test` also checks that the
+generated C++ files are current.
+
+Nazaré is strictly a development station:
 its TICON-4/GESLA data is licensed **CC BY-NC 4.0**, which forbids commercial
 use. It must be replaced by commercially distributable station data before any
 commercial firmware or product distribution.
@@ -46,8 +53,16 @@ commercial firmware or product distribution.
 The first engine version returns the astronomical height anomaly in metres
 relative to mean sea level (MSL). It is intentionally not connected to
 `TideService` or `HomeScreen` yet. It currently omits nodal amplitude/phase
-corrections, minor and compound constituents, datum conversion, and extreme
-searching. Predictions are not suitable for navigation or safety decisions.
+corrections, datum conversion, validation against published predictions or
+observations, and extreme searching. Meteorological effects, waves and storm
+surge are also outside the harmonic model. Predictions are not suitable for
+navigation or safety decisions.
+
+The host regression test prints the result from the historical eight major
+constituents beside the result from all 50 at three fixed UTC timestamps. The
+deltas document the contribution of the additional long-period, minor and
+compound constituents; they are not an accuracy measurement against real water
+levels.
 
 Run its native sanity checks with:
 
