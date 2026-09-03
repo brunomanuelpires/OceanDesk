@@ -10,6 +10,7 @@
 #include "services/WiFiService.h"
 #include "services/NTPService.h"
 #include "core/EventDispatcher.h"
+#include "services/TideService.h"
 
 using namespace esp_panel::drivers;
 using namespace esp_panel::board;
@@ -72,6 +73,8 @@ void setup()
 
     NTPService::begin();
 
+    TideService::begin();
+
     Serial.println("Creating OceanDesk UI...");
 
     lvgl_port_lock(-1);
@@ -89,6 +92,7 @@ void loop()
     WiFiService::update();
     ClockService::update();
     NTPService::update();
+    TideService::update();
 
     lvgl_port_lock(-1);
     EventDispatcher::refresh();

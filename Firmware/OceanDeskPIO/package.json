@@ -8,12 +8,16 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:tides && npm run test:tide-engine",
+    "test:tide-engine": "sh scripts/test_tide_engine.sh",
+    "test:tides": "node --test tools/tides/*.test.mjs",
+    "tides:portugal": "node tools/tides/portugal-stations.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@neaps/tide-database": "0.9.20260801",
     "lv_font_conv": "^1.5.3"
   }
 }
