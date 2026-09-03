@@ -50,19 +50,32 @@ its TICON-4/GESLA data is licensed **CC BY-NC 4.0**, which forbids commercial
 use. It must be replaced by commercially distributable station data before any
 commercial firmware or product distribution.
 
-The first engine version returns the astronomical height anomaly in metres
-relative to mean sea level (MSL). It is intentionally not connected to
-`TideService` or `HomeScreen` yet. It currently omits nodal amplitude/phase
-corrections, datum conversion, validation against published predictions or
-observations, and extreme searching. Meteorological effects, waves and storm
-surge are also outside the harmonic model. Predictions are not suitable for
-navigation or safety decisions.
+The engine returns the astronomical height anomaly in metres relative to mean
+sea level (MSL). It is intentionally not connected to `TideService` or
+`HomeScreen` yet.
 
-The host regression test prints the result from the historical eight major
-constituents beside the result from all 50 at three fixed UTC timestamps. The
-deltas document the contribution of the additional long-period, minor and
-compound constituents; they are not an accuracy measurement against real water
-levels.
+Amplitude (`f`) and phase (`u`) nodal corrections reproduce the default IHO
+fundamentals and compound-constituent composition used by the pinned
+`@neaps/tide-predictor@0.11.0`. The generator resolves each Neaps constituent
+into at most two fundamental correction terms, so the generated table remains
+compact and the C++ correction calculation can be tested separately from the
+harmonic sum. `predictHeight()` applies nodal corrections;
+`predictHeightWithoutNodalCorrections()` retains the original calculation for
+regression and effect measurements. Corrections are evaluated at the requested
+UTC timestamp. Neaps evaluates them at the midpoint of each daily prediction
+chunk, so long generated timelines can differ very slightly within a day even
+though both use the same IHO formulas and composition.
+
+Datum conversion (including MSL to LAT), validation against published
+predictions or observations, and extreme searching remain unimplemented.
+Meteorological effects, waves and storm surge are also outside the harmonic
+model. Predictions are not suitable for navigation or safety decisions.
+
+The host regression test checks Neaps-derived `f`/`u` values and corrected
+heights at fixed UTC timestamps, verifies continuity, and prints the 50-term
+height with and without nodal corrections. These deltas measure the mathematical
+effect of nodal correction; they are not an accuracy measurement against real
+water levels. The historical eight-constituent baseline remains covered too.
 
 Run its native sanity checks with:
 

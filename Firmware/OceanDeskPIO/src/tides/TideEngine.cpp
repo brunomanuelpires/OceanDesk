@@ -1,5 +1,6 @@
 #include "TideEngine.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -33,6 +34,7 @@ struct AstronomicalArguments
     double lunarLongitude;
     double solarLongitude;
     double lunarPerigee;
+    double lunarNode;
     double lunarNodePrime;
     double solarPerigee;
 };
@@ -81,6 +83,7 @@ AstronomicalArguments astronomicalArguments(int64_t timestampUtc)
         s,
         h,
         p,
+        node,
         -node,
         pp,
     };
@@ -105,6 +108,107 @@ double equilibriumArgument(const TideConstituent &constituent, const Astronomica
     }
     return result;
 }
+
+TideNodalCorrection fromSinCos(double fSinU, double fCosU)
+{
+    return {
+        std::sqrt(fSinU * fSinU + fCosU * fCosU),
+        std::atan2(fSinU, fCosU) / degreesToRadians,
+    };
+}
+
+TideNodalCorrection fundamentalCorrection(TideNodalFundamental fundamental,
+                                          const AstronomicalArguments &astro)
+{
+    const double node = astro.lunarNode * degreesToRadians;
+    const double perigee = astro.lunarPerigee * degreesToRadians;
+
+    switch (fundamental)
+    {
+    case TideNodalFundamental::Mm:
+        return {
+            1.0 - 0.1311 * std::cos(node) + 0.0538 * std::cos(2.0 * perigee) +
+                0.0205 * std::cos(2.0 * perigee - node),
+            0.0,
+        };
+    case TideNodalFundamental::Mf:
+        return {
+            1.084 + 0.415 * std::cos(node) + 0.039 * std::cos(2.0 * node),
+            -23.7 * std::sin(node) + 2.7 * std::sin(2.0 * node) - 0.4 * std::sin(3.0 * node),
+        };
+    case TideNodalFundamental::O1:
+        return {
+            1.0176 + 0.1871 * std::cos(node) - 0.0147 * std::cos(2.0 * node),
+            10.8 * std::sin(node) - 1.34 * std::sin(2.0 * node) + 0.19 * std::sin(3.0 * node),
+        };
+    case TideNodalFundamental::K1:
+        return {
+            1.006 + 0.115 * std::cos(node) - 0.0088 * std::cos(2.0 * node) +
+                0.0006 * std::cos(3.0 * node),
+            -8.86 * std::sin(node) + 0.68 * std::sin(2.0 * node) - 0.07 * std::sin(3.0 * node),
+        };
+    case TideNodalFundamental::J1:
+        return {
+            1.1029 + 0.1676 * std::cos(node) - 0.017 * std::cos(2.0 * node) +
+                0.0016 * std::cos(3.0 * node),
+            -12.94 * std::sin(node) + 1.34 * std::sin(2.0 * node) - 0.19 * std::sin(3.0 * node),
+        };
+    case TideNodalFundamental::M1:
+        return fromSinCos(
+            std::sin(perigee) + 0.2 * std::sin(perigee - node),
+            2.0 * (std::cos(perigee) + 0.2 * std::cos(perigee - node)));
+    case TideNodalFundamental::M2:
+        return {
+            1.0007 - 0.0373 * std::cos(node) + 0.0002 * std::cos(2.0 * node),
+            -2.14 * std::sin(node),
+        };
+    case TideNodalFundamental::K2:
+        return {
+            1.0246 + 0.2863 * std::cos(node) + 0.0083 * std::cos(2.0 * node) -
+                0.0015 * std::cos(3.0 * node),
+            -17.74 * std::sin(node) + 0.68 * std::sin(2.0 * node) - 0.04 * std::sin(3.0 * node),
+        };
+    case TideNodalFundamental::M3:
+    {
+        const TideNodalCorrection m2 =
+            fundamentalCorrection(TideNodalFundamental::M2, astro);
+        return {
+            std::pow(std::sqrt(m2.amplitudeFactor), 3.0),
+            -3.21 * std::sin(node),
+        };
+    }
+    case TideNodalFundamental::L2:
+        return fromSinCos(
+            -0.2505 * std::sin(2.0 * perigee) -
+                0.1102 * std::sin(2.0 * perigee - node) -
+                0.0156 * std::sin(2.0 * perigee - 2.0 * node) - 0.037 * std::sin(node),
+            1.0 - 0.2505 * std::cos(2.0 * perigee) -
+                0.1102 * std::cos(2.0 * perigee - node) -
+                0.0156 * std::cos(2.0 * perigee - 2.0 * node) - 0.037 * std::cos(node));
+    case TideNodalFundamental::None:
+        return {1.0, 0.0};
+    }
+
+    return {1.0, 0.0};
+}
+
+TideNodalCorrection composedCorrection(const TideConstituent &constituent,
+                                        const AstronomicalArguments &astro)
+{
+    TideNodalCorrection result = {1.0, 0.0};
+
+    const size_t termCount = std::min(static_cast<size_t>(constituent.nodalTermCount),
+                                      tideNodalTermCapacity);
+    for (size_t index = 0; index < termCount; ++index)
+    {
+        const TideNodalTerm &term = constituent.nodalTerms[index];
+        const TideNodalCorrection correction = fundamentalCorrection(term.fundamental, astro);
+        result.amplitudeFactor *= std::pow(correction.amplitudeFactor, std::abs(term.factor));
+        result.phaseDegrees += static_cast<double>(term.factor) * correction.phaseDegrees;
+    }
+
+    return result;
+}
 } // namespace
 
 TideEngine::TideEngine(const TideHarmonicStation &station)
@@ -113,6 +217,28 @@ TideEngine::TideEngine(const TideHarmonicStation &station)
 }
 
 double TideEngine::predictHeight(int64_t timestampUtc) const
+{
+    return predictHeightInternal(timestampUtc, true);
+}
+
+double TideEngine::predictHeightWithoutNodalCorrections(int64_t timestampUtc) const
+{
+    return predictHeightInternal(timestampUtc, false);
+}
+
+TideNodalCorrection TideEngine::nodalCorrection(size_t constituentIndex, int64_t timestampUtc) const
+{
+    if (!valid() || constituentIndex >= station_.constituentCount)
+    {
+        return {1.0, 0.0};
+    }
+
+    const TideConstituent &constituent = station_.constituents[constituentIndex];
+    const AstronomicalArguments astro = astronomicalArguments(timestampUtc);
+    return composedCorrection(constituent, astro);
+}
+
+double TideEngine::predictHeightInternal(int64_t timestampUtc, bool applyNodalCorrections) const
 {
     if (!valid())
     {
@@ -125,9 +251,12 @@ double TideEngine::predictHeight(int64_t timestampUtc) const
     for (size_t index = 0; index < station_.constituentCount; ++index)
     {
         const TideConstituent &constituent = station_.constituents[index];
+        const TideNodalCorrection correction =
+            applyNodalCorrections ? composedCorrection(constituent, astro) : TideNodalCorrection{1.0, 0.0};
         const double angleDegrees =
-            equilibriumArgument(constituent, astro) - constituent.phaseDegreesUtc;
-        heightMeters += constituent.amplitudeMeters * std::cos(angleDegrees * degreesToRadians);
+            equilibriumArgument(constituent, astro) + correction.phaseDegrees - constituent.phaseDegreesUtc;
+        heightMeters += constituent.amplitudeMeters * correction.amplitudeFactor *
+                        std::cos(angleDegrees * degreesToRadians);
     }
 
     return heightMeters;
