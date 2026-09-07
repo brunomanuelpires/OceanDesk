@@ -51,8 +51,16 @@ use. It must be replaced by commercially distributable station data before any
 commercial firmware or product distribution.
 
 The engine returns the astronomical height anomaly in metres relative to mean
-sea level (MSL). It is intentionally not connected to `TideService` or
-`HomeScreen` yet.
+sea level (MSL). `TidePrediction` derives the current trend and the surrounding
+high- and low-water events without changing `TideEngine`'s public API.
+`TideService` converts those predictions into the application's tide snapshot
+after NTP synchronization and refreshes it every 15 minutes. `HomeScreen` shows
+the current trend, predicted height and the next high- and low-water times.
+
+For the Nazaré development station, the displayed and event heights add the
+Instituto Hidrografico's published mean level of 2.00 m above Zero Hidrografico
+(ZH). This is a station-specific MSL-anomaly-to-ZH alignment, not a general
+datum conversion.
 
 Amplitude (`f`) and phase (`u`) nodal corrections reproduce the default IHO
 fundamentals and compound-constituent composition used by the pinned
@@ -66,9 +74,8 @@ UTC timestamp. Neaps evaluates them at the midpoint of each daily prediction
 chunk, so long generated timelines can differ very slightly within a day even
 though both use the same IHO formulas and composition.
 
-Datum conversion (including MSL to LAT), validation against published
-predictions beyond the limited check below, and production extreme searching
-remain unimplemented.
+General datum conversion (including MSL to LAT) and validation against
+published predictions beyond the limited check below remain unimplemented.
 Meteorological effects, waves and storm surge are also outside the harmonic
 model. Predictions are not suitable for navigation or safety decisions.
 

@@ -2,7 +2,6 @@
 #include <esp_display_panel.hpp>
 #include <lvgl.h>
 #include "core/OceanDesk.h"
-#include "ui/Dashboard.h"
 #include "core/ScreenManager.h"
 #include "services/ClockService.h"
 #include "lvgl_v8_port.h"
