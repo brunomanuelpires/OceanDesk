@@ -4,6 +4,7 @@
 #include "tides/TideEngine.h"
 #include "tides/TidePrediction.h"
 #include "tides/data/NazareTideData.h"
+#include "tides/data/NazareTideDatum.h"
 
 static unsigned long lastUpdate = 0;
 static const unsigned long updateInterval = 15UL * 60UL * 1000UL; // 15 minutos
@@ -26,7 +27,8 @@ TideEvent toTideEvent(const TideExtremum &extremum)
                      ? TideEventType::Low
                      : TideEventType::High;
     event.timestamp = static_cast<time_t>(extremum.timestampUtc);
-    event.height = static_cast<float>(extremum.heightMeters);
+    event.height = static_cast<float>(
+        TideDatum::nazareHeightAboveHydrographicZero(extremum.heightMeters));
     event.valid = true;
     return event;
 }
@@ -54,7 +56,8 @@ void refreshSnapshot(time_t timestampUtc)
     snapshot.station.valid = true;
 
     snapshot.state = prediction.rising ? TideState::Rising : TideState::Falling;
-    snapshot.currentHeight = static_cast<float>(prediction.currentHeightMeters);
+    snapshot.currentHeight = static_cast<float>(
+        TideDatum::nazareHeightAboveHydrographicZero(prediction.currentHeightMeters));
     snapshot.previousEvent = toTideEvent(prediction.previous);
     snapshot.nextLow = toTideEvent(prediction.nextLow);
     snapshot.nextHigh = toTideEvent(prediction.nextHigh);

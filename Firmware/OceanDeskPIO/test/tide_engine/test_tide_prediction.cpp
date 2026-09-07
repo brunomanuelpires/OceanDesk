@@ -1,6 +1,7 @@
 #include "tides/TideEngine.h"
 #include "tides/TidePrediction.h"
 #include "tides/data/NazareTideData.h"
+#include "tides/data/NazareTideDatum.h"
 
 #include <cassert>
 #include <cmath>
@@ -14,6 +15,9 @@ int main()
 
     assert(prediction.valid);
     assert(std::isfinite(prediction.currentHeightMeters));
+    assert(std::abs(TideDatum::nazareHeightAboveHydrographicZero(
+                        prediction.currentHeightMeters) -
+                    3.104126) < 0.00001);
     assert(prediction.rising);
     assert(prediction.previous.timestampUtc < timestampUtc);
     assert(prediction.nextHigh.type == TideExtremumType::High);

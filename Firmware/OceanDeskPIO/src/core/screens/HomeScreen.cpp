@@ -8,6 +8,7 @@
 namespace
 {
 lv_obj_t *status = nullptr;
+lv_obj_t *height = nullptr;
 lv_obj_t *lowTime = nullptr;
 lv_obj_t *highTime = nullptr;
 }
@@ -39,6 +40,11 @@ void HomeScreen::create()
     lv_obj_set_style_text_color(status, Theme::color(Theme::TextMuted), 0);
     lv_obj_align(status, LV_ALIGN_CENTER, 0, -55);
 
+    height = lv_label_create(screen);
+    lv_obj_set_style_text_font(height, Theme::FontMedium, 0);
+    lv_obj_set_style_text_color(height, Theme::color(Theme::Text), 0);
+    lv_obj_align(height, LV_ALIGN_CENTER, 0, -15);
+
     // Próxima baixa-mar
     lv_obj_t *lowLabel = lv_label_create(screen);
     lv_label_set_text(lowLabel, "Próxima baixa-mar");
@@ -68,7 +74,7 @@ void HomeScreen::create()
 
 void HomeScreen::refresh()
 {
-    if (status == nullptr || lowTime == nullptr || highTime == nullptr)
+    if (status == nullptr || height == nullptr || lowTime == nullptr || highTime == nullptr)
     {
         return;
     }
@@ -85,6 +91,16 @@ void HomeScreen::refresh()
     }
 
     lv_label_set_text(status, statusText);
+    if (tide.valid)
+    {
+        char heightText[40];
+        snprintf(heightText, sizeof(heightText), "Altura prevista: %.1f m ZH", tide.currentHeight);
+        lv_label_set_text(height, heightText);
+    }
+    else
+    {
+        lv_label_set_text(height, "Altura prevista: --");
+    }
     lv_label_set_text(lowTime, TideService::formatTime(tide.nextLow.timestamp).c_str());
     lv_label_set_text(highTime, TideService::formatTime(tide.nextHigh.timestamp).c_str());
 }

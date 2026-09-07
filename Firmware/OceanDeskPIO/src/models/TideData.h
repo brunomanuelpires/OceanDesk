@@ -16,6 +16,7 @@ struct TideEvent
 
     time_t timestamp = 0;
 
+    // Metres relative to the station's published height datum.
     float height = 0.0f;
 
     bool valid = false;
@@ -47,6 +48,7 @@ struct TideSnapshot
     TideStation station;
 
     TideState state = TideState::Unknown;
+    // Metres relative to the station's published height datum.
     float currentHeight = 0.0f;
 
     TideEvent previousEvent;

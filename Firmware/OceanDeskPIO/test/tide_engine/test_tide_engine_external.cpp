@@ -1,5 +1,6 @@
 #include "tides/TideEngine.h"
 #include "tides/data/NazareTideData.h"
+#include "tides/data/NazareTideDatum.h"
 
 #include <algorithm>
 #include <cassert>
@@ -10,7 +11,6 @@
 
 namespace
 {
-constexpr double nazareMeanLevelAboveHydrographicZeroMeters = 2.00;
 constexpr int64_t searchHalfWindowSeconds = 3 * 60 * 60;
 constexpr int64_t searchStepSeconds = 60;
 
@@ -99,7 +99,7 @@ PredictedEvent findNearbyExtremum(const TideEngine &engine, const ReferenceEvent
 
     return {
         refinedTimestamp,
-        refinedHeight + nazareMeanLevelAboveHydrographicZeroMeters,
+        TideDatum::nazareHeightAboveHydrographicZero(refinedHeight),
     };
 }
 
