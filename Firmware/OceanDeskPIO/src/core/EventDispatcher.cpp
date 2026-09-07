@@ -1,4 +1,5 @@
 #include "EventDispatcher.h"
+#include "screens/HomeScreen.h"
 #include "widgets/Header.h"
 
 void EventDispatcher::begin()
@@ -9,4 +10,5 @@ void EventDispatcher::begin()
 void EventDispatcher::refresh()
 {
     Header::refresh();
+    HomeScreen::refresh();
 }

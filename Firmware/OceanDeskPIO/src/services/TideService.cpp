@@ -1,70 +1,88 @@
 #include "TideService.h"
 
 #include <time.h>
+#include "tides/TideEngine.h"
+#include "tides/TidePrediction.h"
+#include "tides/data/NazareTideData.h"
 
 static unsigned long lastUpdate = 0;
 static const unsigned long updateInterval = 15UL * 60UL * 1000UL; // 15 minutos
 
 namespace
 {
-// Horas simuladas no dia-base Unix. Serão substituídas pelo motor harmónico.
-constexpr time_t simulatedPreviousHigh = 6 * 60 * 60 + 18 * 60;
-constexpr time_t simulatedNextLow = 12 * 60 * 60 + 45 * 60;
-constexpr time_t simulatedNextHigh = 18 * 60 * 60 + 32 * 60;
+constexpr time_t minimumSynchronizedTime = 1577836800; // 2020-01-01 UTC
+const TideEngine engine(TideDevelopmentData::nazare);
+TideSnapshot snapshot;
+
+TideEvent toTideEvent(const TideExtremum &extremum)
+{
+    TideEvent event;
+    if (!extremum.valid)
+    {
+        return event;
+    }
+
+    event.type = extremum.type == TideExtremumType::Low
+                     ? TideEventType::Low
+                     : TideEventType::High;
+    event.timestamp = static_cast<time_t>(extremum.timestampUtc);
+    event.height = static_cast<float>(extremum.heightMeters);
+    event.valid = true;
+    return event;
+}
+
+void refreshSnapshot(time_t timestampUtc)
+{
+    snapshot = TideSnapshot{};
+    if (timestampUtc < minimumSynchronizedTime)
+    {
+        return;
+    }
+
+    const TidePrediction prediction = calculateTidePrediction(engine, timestampUtc);
+    if (!prediction.valid)
+    {
+        return;
+    }
+
+    snapshot.station.id = engine.station().id;
+    snapshot.station.name = "Nazaré";
+    snapshot.station.latitude = 39.585999;
+    snapshot.station.longitude = -9.074;
+    snapshot.station.source = engine.station().source;
+    snapshot.station.license = engine.station().license;
+    snapshot.station.valid = true;
+
+    snapshot.state = prediction.rising ? TideState::Rising : TideState::Falling;
+    snapshot.currentHeight = static_cast<float>(prediction.currentHeightMeters);
+    snapshot.previousEvent = toTideEvent(prediction.previous);
+    snapshot.nextLow = toTideEvent(prediction.nextLow);
+    snapshot.nextHigh = toTideEvent(prediction.nextHigh);
+    snapshot.valid = true;
+}
 }
 
 void TideService::begin()
 {
     lastUpdate = 0;
+    refreshSnapshot(time(nullptr));
 }
 
 void TideService::update()
 {
     unsigned long now = millis();
 
-    if (lastUpdate == 0 || now - lastUpdate >= updateInterval)
+    const time_t timestampUtc = time(nullptr);
+    if (timestampUtc >= minimumSynchronizedTime &&
+        (!snapshot.valid || lastUpdate == 0 || now - lastUpdate >= updateInterval))
     {
         lastUpdate = now;
-
-        // Futuramente:
-        // - verificar Wi-Fi
-        // - pedir dados reais à API
-        // - guardar próxima baixa-mar / preia-mar
-        // - atualizar estado da maré
+        refreshSnapshot(timestampUtc);
     }
 }
 
 TideSnapshot TideService::getSnapshot()
 {
-    TideSnapshot snapshot;
-
-    snapshot.station.id = "ticon/nazaretg-naz-prt-cmems";
-    snapshot.station.name = "Nazaré";
-    snapshot.station.latitude = 39.585999;
-    snapshot.station.longitude = -9.074;
-    snapshot.station.source = "TICON-4";
-    snapshot.station.license = "CC BY-NC 4.0";
-    snapshot.station.valid = true;
-
-    snapshot.valid = true;
-    snapshot.state = TideState::Falling;
-    snapshot.currentHeight = 1.42f;
-
-    snapshot.previousEvent.type = TideEventType::High;
-    snapshot.previousEvent.timestamp = simulatedPreviousHigh;
-    snapshot.previousEvent.height = 2.63f;
-    snapshot.previousEvent.valid = true;
-
-    snapshot.nextLow.type = TideEventType::Low;
-    snapshot.nextLow.timestamp = simulatedNextLow;
-    snapshot.nextLow.height = 0.58f;
-    snapshot.nextLow.valid = true;
-
-    snapshot.nextHigh.type = TideEventType::High;
-    snapshot.nextHigh.timestamp = simulatedNextHigh;
-    snapshot.nextHigh.height = 2.75f;
-    snapshot.nextHigh.valid = true;
-
     return snapshot;
 }
 
