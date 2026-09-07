@@ -8,8 +8,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run test:tides && npm run test:tide-engine",
+    "test": "npm run test:tides && npm run test:tide-engine && npm run test:tide-engine-external",
     "test:tide-engine": "sh scripts/test_tide_engine.sh",
+    "test:tide-engine-external": "sh scripts/test_tide_engine_external.sh",
     "test:tides": "node --test tools/tides/*.test.mjs && npm run tides:generate-nazare -- --check",
     "tides:generate-nazare": "node tools/tides/generate-nazare-tide-data.mjs",
     "tides:portugal": "node tools/tides/portugal-stations.mjs"
