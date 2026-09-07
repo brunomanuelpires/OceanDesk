@@ -16,9 +16,9 @@ void Header::create()
 
     lv_obj_align(
         title,
-        LV_ALIGN_TOP_MID,
-        0,
-        15
+        LV_ALIGN_TOP_LEFT,
+        22,
+        18
     );
 
     lv_obj_set_style_text_font(
@@ -35,17 +35,18 @@ void Header::create()
 
     // Hora
     timeLabel = lv_label_create(screen);
+    lv_label_set_text(timeLabel, "--:--");
 
     lv_obj_align(
         timeLabel,
         LV_ALIGN_TOP_MID,
         0,
-        55
+        48
     );
 
     lv_obj_set_style_text_font(
         timeLabel,
-        Theme::FontXL,
+        Theme::FontTime,
         0
     );
 
@@ -57,23 +58,24 @@ void Header::create()
 
     // Data
     dateLabel = lv_label_create(screen);
+    lv_label_set_text(dateLabel, "--");
 
     lv_obj_align(
         dateLabel,
         LV_ALIGN_TOP_MID,
         0,
-        115
+        158
     );
 
     lv_obj_set_style_text_font(
         dateLabel,
-        Theme::FontSmall,
+        Theme::FontMedium,
         0
     );
 
     lv_obj_set_style_text_color(
         dateLabel,
-        Theme::color(Theme::TextMuted),
+        Theme::color(Theme::Text),
         0
     );
 
@@ -111,6 +113,9 @@ void Header::refresh()
         dateLabel,
         currentDate.c_str()
     );
+
+    lv_obj_align(timeLabel, LV_ALIGN_TOP_MID, 0, 48);
+    lv_obj_align(dateLabel, LV_ALIGN_TOP_MID, 0, 158);
 }
 
 void Header::timerCallback(lv_timer_t *timer)
