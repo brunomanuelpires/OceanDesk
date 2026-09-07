@@ -10,7 +10,22 @@ namespace
 lv_obj_t *status = nullptr;
 lv_obj_t *height = nullptr;
 lv_obj_t *lowTime = nullptr;
+lv_obj_t *lowHeight = nullptr;
 lv_obj_t *highTime = nullptr;
+lv_obj_t *highHeight = nullptr;
+
+void setEventHeight(lv_obj_t *label, const TideEvent &event)
+{
+    if (!event.valid)
+    {
+        lv_label_set_text(label, "--");
+        return;
+    }
+
+    char text[20];
+    snprintf(text, sizeof(text), "%.1f m ZH", event.height);
+    lv_label_set_text(label, text);
+}
 }
 
 void HomeScreen::create()
@@ -57,6 +72,11 @@ void HomeScreen::create()
     lv_obj_set_style_text_color(lowTime, Theme::color(Theme::TideLow), 0);
     lv_obj_align_to(lowTime, lowLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 12);
 
+    lowHeight = lv_label_create(screen);
+    lv_obj_set_style_text_font(lowHeight, Theme::FontMedium, 0);
+    lv_obj_set_style_text_color(lowHeight, Theme::color(Theme::TextMuted), 0);
+    lv_obj_align_to(lowHeight, lowTime, LV_ALIGN_OUT_BOTTOM_MID, 0, 8);
+
     // Próxima preia-mar
     lv_obj_t *highLabel = lv_label_create(screen);
     lv_label_set_text(highLabel, "Próxima preia-mar");
@@ -69,12 +89,19 @@ void HomeScreen::create()
     lv_obj_set_style_text_color(highTime, Theme::color(Theme::TideHigh), 0);
     lv_obj_align_to(highTime, highLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 12);
 
+    highHeight = lv_label_create(screen);
+    lv_obj_set_style_text_font(highHeight, Theme::FontMedium, 0);
+    lv_obj_set_style_text_color(highHeight, Theme::color(Theme::TextMuted), 0);
+    lv_obj_align_to(highHeight, highTime, LV_ALIGN_OUT_BOTTOM_MID, 0, 8);
+
     refresh();
 }
 
 void HomeScreen::refresh()
 {
-    if (status == nullptr || height == nullptr || lowTime == nullptr || highTime == nullptr)
+    if (status == nullptr || height == nullptr ||
+        lowTime == nullptr || lowHeight == nullptr ||
+        highTime == nullptr || highHeight == nullptr)
     {
         return;
     }
@@ -103,4 +130,6 @@ void HomeScreen::refresh()
     }
     lv_label_set_text(lowTime, TideService::formatTime(tide.nextLow.timestamp).c_str());
     lv_label_set_text(highTime, TideService::formatTime(tide.nextHigh.timestamp).c_str());
+    setEventHeight(lowHeight, tide.nextLow);
+    setEventHeight(highHeight, tide.nextHigh);
 }
