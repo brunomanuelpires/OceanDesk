@@ -11,8 +11,11 @@ namespace
 {
 lv_obj_t *status = nullptr;
 lv_obj_t *height = nullptr;
+lv_obj_t *previousEvent = nullptr;
+lv_obj_t *lowLabel = nullptr;
 lv_obj_t *lowTime = nullptr;
 lv_obj_t *lowHeight = nullptr;
+lv_obj_t *highLabel = nullptr;
 lv_obj_t *highTime = nullptr;
 lv_obj_t *highHeight = nullptr;
 lv_obj_t *tideCurve = nullptr;
@@ -23,6 +26,8 @@ constexpr lv_coord_t tideCurveLeft = 20;
 constexpr lv_coord_t tideCurveTop = 15;
 constexpr lv_coord_t tideCurveWidth = 260;
 constexpr lv_coord_t tideCurveHeight = 95;
+constexpr lv_coord_t currentTideTop = 220;
+constexpr lv_coord_t currentTideLineGap = 8;
 constexpr double pi = 3.14159265358979323846;
 lv_point_t tideCurvePoints[tideCurvePointCount];
 
@@ -37,6 +42,41 @@ void setEventHeight(lv_obj_t *label, const TideEvent &event)
     char text[20];
     snprintf(text, sizeof(text), "%.1f m ZH", event.height);
     lv_label_set_text(label, text);
+}
+
+const char *eventTypeLabel(TideEventType type)
+{
+    switch (type)
+    {
+    case TideEventType::Low:
+        return "Última baixa-mar";
+    case TideEventType::High:
+        return "Última preia-mar";
+    case TideEventType::Unknown:
+        return "Último evento";
+    }
+
+    return "Último evento";
+}
+
+void updatePreviousEvent(const TideEvent &event)
+{
+    if (!event.valid)
+    {
+        lv_label_set_text(previousEvent, "Último evento  --");
+        return;
+    }
+
+    char text[64];
+    snprintf(
+        text,
+        sizeof(text),
+        "%s  %s  %.1f m ZH",
+        eventTypeLabel(event.type),
+        TideService::formatTime(event.timestamp).c_str(),
+        event.height
+    );
+    lv_label_set_text(previousEvent, text);
 }
 
 double calculateTideProgress(const TideSnapshot &tide)
@@ -131,15 +171,21 @@ void HomeScreen::create()
     status = lv_label_create(screen);
     lv_obj_set_style_text_font(status, Theme::FontLarge, 0);
     lv_obj_set_style_text_color(status, Theme::color(Theme::Text), 0);
-    lv_obj_align(status, LV_ALIGN_TOP_MID, 0, 270);
+    lv_obj_align(status, LV_ALIGN_TOP_MID, 0, currentTideTop);
 
     height = lv_label_create(screen);
     lv_obj_set_style_text_font(height, Theme::FontMedium, 0);
     lv_obj_set_style_text_color(height, Theme::color(Theme::Text), 0);
-    lv_obj_align(height, LV_ALIGN_TOP_MID, 0, 318);
+    lv_obj_align_to(height, status, LV_ALIGN_OUT_BOTTOM_MID, 0, currentTideLineGap);
+
+    // Último extremo dá contexto ao ciclo atual sem competir com os próximos.
+    previousEvent = lv_label_create(screen);
+    lv_obj_set_style_text_font(previousEvent, Theme::FontMedium, 0);
+    lv_obj_set_style_text_color(previousEvent, Theme::color(Theme::Accent), 0);
+    lv_obj_align_to(previousEvent, height, LV_ALIGN_OUT_BOTTOM_MID, 0, currentTideLineGap);
 
     // Próxima baixa-mar
-    lv_obj_t *lowLabel = lv_label_create(screen);
+    lowLabel = lv_label_create(screen);
     lv_label_set_text(lowLabel, "Próxima baixa-mar");
     lv_obj_set_style_text_font(lowLabel, Theme::FontMedium, 0);
     lv_obj_set_style_text_color(lowLabel, Theme::color(Theme::Text), 0);
@@ -151,12 +197,12 @@ void HomeScreen::create()
     lv_obj_align_to(lowTime, lowLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
     lowHeight = lv_label_create(screen);
-    lv_obj_set_style_text_font(lowHeight, Theme::FontSmall, 0);
+    lv_obj_set_style_text_font(lowHeight, Theme::FontMedium, 0);
     lv_obj_set_style_text_color(lowHeight, Theme::color(Theme::Text), 0);
     lv_obj_align_to(lowHeight, lowTime, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
 
     // Próxima preia-mar
-    lv_obj_t *highLabel = lv_label_create(screen);
+    highLabel = lv_label_create(screen);
     lv_label_set_text(highLabel, "Próxima preia-mar");
     lv_obj_set_style_text_font(highLabel, Theme::FontMedium, 0);
     lv_obj_set_style_text_color(highLabel, Theme::color(Theme::Text), 0);
@@ -168,7 +214,7 @@ void HomeScreen::create()
     lv_obj_align_to(highTime, highLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
 
     highHeight = lv_label_create(screen);
-    lv_obj_set_style_text_font(highHeight, Theme::FontSmall, 0);
+    lv_obj_set_style_text_font(highHeight, Theme::FontMedium, 0);
     lv_obj_set_style_text_color(highHeight, Theme::color(Theme::Text), 0);
     lv_obj_align_to(highHeight, highTime, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
 
@@ -199,9 +245,9 @@ void HomeScreen::create()
 
 void HomeScreen::refresh()
 {
-    if (status == nullptr || height == nullptr ||
-        lowTime == nullptr || lowHeight == nullptr ||
-        highTime == nullptr || highHeight == nullptr ||
+    if (status == nullptr || height == nullptr || previousEvent == nullptr ||
+        lowLabel == nullptr || lowTime == nullptr || lowHeight == nullptr ||
+        highLabel == nullptr || highTime == nullptr || highHeight == nullptr ||
         tideCurve == nullptr || tideMarker == nullptr)
     {
         return;
@@ -233,5 +279,17 @@ void HomeScreen::refresh()
     lv_label_set_text(highTime, TideService::formatTime(tide.nextHigh.timestamp).c_str());
     setEventHeight(lowHeight, tide.nextLow);
     setEventHeight(highHeight, tide.nextHigh);
+    updatePreviousEvent(tide.previousEvent);
+
+    // Label dimensions change with their text. Realign after every update so
+    // the central lines retain equal spacing and event heights remain on the
+    // exact same horizontal axis as their times.
+    lv_obj_align(status, LV_ALIGN_TOP_MID, 0, currentTideTop);
+    lv_obj_align_to(height, status, LV_ALIGN_OUT_BOTTOM_MID, 0, currentTideLineGap);
+    lv_obj_align_to(previousEvent, height, LV_ALIGN_OUT_BOTTOM_MID, 0, currentTideLineGap);
+    lv_obj_align_to(lowTime, lowLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+    lv_obj_align_to(lowHeight, lowTime, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
+    lv_obj_align_to(highTime, highLabel, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+    lv_obj_align_to(highHeight, highTime, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
     updateTideCurve(tide);
 }
