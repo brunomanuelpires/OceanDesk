@@ -5,20 +5,28 @@
 static const char *SSID = "Casa";
 static const char *PASSWORD = "casa2023";
 
+namespace
+{
+constexpr unsigned long reconnectInterval = 30UL * 1000UL;
+unsigned long lastReconnectAttempt = 0;
+wl_status_t lastStatus = WL_NO_SHIELD;
+}
+
 void WiFiService::begin()
 {
     Serial.println("WiFi: starting connection...");
 
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(true);
     WiFi.begin(SSID, PASSWORD);
+    lastReconnectAttempt = millis();
+    lastStatus = WiFi.status();
 }
 
 void WiFiService::update()
 {
-    static wl_status_t lastStatus = WL_NO_SHIELD;
-    static unsigned long lastAttempt = 0;
-
-    wl_status_t currentStatus = WiFi.status();
+    const unsigned long now = millis();
+    const wl_status_t currentStatus = WiFi.status();
 
     if (currentStatus != lastStatus)
     {
@@ -37,17 +45,12 @@ void WiFiService::update()
         }
     }
 
-    if (currentStatus != WL_CONNECTED)
+    if (currentStatus != WL_CONNECTED &&
+        now - lastReconnectAttempt >= reconnectInterval)
     {
-        if (millis() - lastAttempt > 10000)
-        {
-            lastAttempt = millis();
-
-            Serial.println("WiFi: reconnecting...");
-
-            WiFi.disconnect();
-            WiFi.begin(SSID, PASSWORD);
-        }
+        lastReconnectAttempt = now;
+        Serial.println("WiFi: requesting reconnection...");
+        WiFi.reconnect();
     }
 }
 

@@ -3,7 +3,11 @@
 #include <WiFi.h>
 #include <time.h>
 
-void NTPService::begin()
+namespace
+{
+bool wasConnected = false;
+
+void requestTimeSynchronization()
 {
     configTzTime(
         "WET0WEST,M3.5.0/1,M10.5.0",
@@ -11,12 +15,24 @@ void NTPService::begin()
         "time.nist.gov"
     );
 }
+}
+
+void NTPService::begin()
+{
+    wasConnected = WiFi.status() == WL_CONNECTED;
+    requestTimeSynchronization();
+}
 
 void NTPService::update()
 {
-    // Por agora não precisa de fazer nada.
-    // O ESP32 trata da sincronização NTP automaticamente
-    // depois de o Wi-Fi estar ligado.
+    const bool connected = WiFi.status() == WL_CONNECTED;
+    if (connected && !wasConnected)
+    {
+        Serial.println("NTP: network available, requesting synchronization...");
+        requestTimeSynchronization();
+    }
+
+    wasConnected = connected;
 }
 
 bool NTPService::isSynced()
