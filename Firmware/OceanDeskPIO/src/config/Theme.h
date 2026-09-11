@@ -10,12 +10,12 @@ namespace Theme
     //=========================================================
 
     // Backgrounds
-    static constexpr uint32_t Background   = 0x0B1620;
+    extern uint32_t Background;
     static constexpr uint32_t Card         = 0x132430;
     static constexpr uint32_t Border       = 0x20313E;
 
     // Text
-    static constexpr uint32_t Text         = 0xFFFFFF;
+    extern uint32_t Text;
     static constexpr uint32_t TextMuted    = 0x8EA6B5;
 
     // Brand
@@ -51,4 +51,6 @@ namespace Theme
     {
         return lv_color_hex(hex);
     }
+
+    void configure(uint32_t textColor, uint32_t backgroundColor);
 }

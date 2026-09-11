@@ -6,19 +6,21 @@
 namespace
 {
 bool wasConnected = false;
+const char *configuredTimezone = "WET0WEST,M3.5.0/1,M10.5.0";
 
 void requestTimeSynchronization()
 {
     configTzTime(
-        "WET0WEST,M3.5.0/1,M10.5.0",
+        configuredTimezone,
         "pool.ntp.org",
         "time.nist.gov"
     );
 }
 }
 
-void NTPService::begin()
+void NTPService::begin(const char *timezone)
 {
+    configuredTimezone = timezone;
     wasConnected = WiFi.status() == WL_CONNECTED;
     requestTimeSynchronization();
 }

@@ -3,7 +3,7 @@
 class NTPService
 {
 public:
-    static void begin();
+    static void begin(const char *timezone);
     static void update();
     static bool isSynced();
 };

@@ -10,11 +10,15 @@
 #include "services/NTPService.h"
 #include "core/EventDispatcher.h"
 #include "services/TideService.h"
+#include "services/ConfigService.h"
+#include "services/SetupWebService.h"
+#include "config/Theme.h"
 
 using namespace esp_panel::drivers;
 using namespace esp_panel::board;
 
 static Board *board = nullptr;
+static bool setupMode = false;
 
 static void button_event_cb(lv_event_t *event)
 {
@@ -67,19 +71,36 @@ void setup()
     // Inicializa o relógio
     ClockService::begin();
 
-    // Inicializa o Wi-Fi
-    WiFiService::begin();
+    ConfigService::begin();
+    const DeviceConfig &config = ConfigService::get();
+    Theme::configure(config.textColor, config.backgroundColor);
+    setupMode = !ConfigService::isConfigured();
 
-    NTPService::begin();
-
-    TideService::begin();
+    if (setupMode)
+    {
+        WiFiService::beginSetupAccessPoint();
+    }
+    else
+    {
+        WiFiService::beginStation(config.wifiSsid.c_str(), config.wifiPassword.c_str());
+        NTPService::begin(config.timezone.c_str());
+        TideService::begin();
+    }
+    SetupWebService::begin();
 
     Serial.println("Creating OceanDesk UI...");
 
     lvgl_port_lock(-1);
 
     EventDispatcher::begin();
-    ScreenManager::showHome();
+    if (setupMode)
+    {
+        ScreenManager::showSetup();
+    }
+    else
+    {
+        ScreenManager::showHome();
+    }
 
     lvgl_port_unlock();
 
@@ -88,7 +109,15 @@ void setup()
 
 void loop()
 {
+    if (setupMode)
+    {
+        SetupWebService::update();
+        delay(10);
+        return;
+    }
+
     WiFiService::update();
+    SetupWebService::update();
     ClockService::update();
     NTPService::update();
     TideService::update();
