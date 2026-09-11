@@ -8,10 +8,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run test:tides && npm run test:tide-engine && npm run test:tide-engine-external",
+    "test": "npm run test:tides && npm run test:beach-catalog && npm run test:tide-engine && npm run test:tide-engine-external",
+    "test:beach-catalog": "sh scripts/test_beach_catalog.sh",
     "test:tide-engine": "sh scripts/test_tide_engine.sh",
     "test:tide-engine-external": "sh scripts/test_tide_engine_external.sh",
-    "test:tides": "node --test tools/tides/*.test.mjs && npm run tides:generate-nazare -- --check",
+    "test:tides": "node --test tools/tides/*.test.mjs && npm run tides:generate-nazare -- --check && npm run tides:generate-beach-catalog -- --check",
+    "tides:generate-beach-catalog": "node tools/tides/generate-beach-catalog.mjs",
     "tides:generate-nazare": "node tools/tides/generate-nazare-tide-data.mjs",
     "tides:portugal": "node tools/tides/portugal-stations.mjs"
   },

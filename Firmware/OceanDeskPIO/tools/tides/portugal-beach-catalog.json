@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "maximumStationDistanceKm": 45,
+  "tideModels": [
+    {
+      "id": "nazare",
+      "stationId": "ticon/nazaretg-naz-prt-cmems",
+      "displayName": "Nazaré",
+      "area": "mainland",
+      "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
+      "firmwareSupported": true
+    }
+  ],
+  "beaches": [
+    {
+      "id": "pedrogao",
+      "displayName": "Praia do Pedrógão",
+      "shortName": "Pedrógão",
+      "region": "Leiria",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.9183,
+      "longitude": -8.9538,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "vieira",
+      "displayName": "Praia da Vieira",
+      "shortName": "Praia da Vieira",
+      "region": "Marinha Grande",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.8717,
+      "longitude": -8.9707,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "praia-velha",
+      "displayName": "Praia Velha",
+      "shortName": "Praia Velha",
+      "region": "Marinha Grande",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.7667,
+      "longitude": -9.0251,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "sao-pedro-de-moel",
+      "displayName": "Praia de São Pedro de Moel",
+      "shortName": "São Pedro de Moel",
+      "region": "Marinha Grande",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.7556,
+      "longitude": -9.0314,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "agua-de-madeiros",
+      "displayName": "Praia da Água de Madeiros",
+      "shortName": "Água de Madeiros",
+      "region": "Marinha Grande",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.740084,
+      "longitude": -9.040124,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "pedra-do-ouro",
+      "displayName": "Praia da Pedra do Ouro",
+      "shortName": "Pedra do Ouro",
+      "region": "Marinha Grande",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.722,
+      "longitude": -9.047,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "polvoeira",
+      "displayName": "Praia da Polvoeira",
+      "shortName": "Polvoeira",
+      "region": "Marinha Grande",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.6884,
+      "longitude": -9.0524,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "paredes-da-vitoria",
+      "displayName": "Praia de Paredes da Vitória",
+      "shortName": "Paredes da Vitória",
+      "region": "Alcobaça",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.7012,
+      "longitude": -9.0497,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "vale-furado",
+      "displayName": "Praia de Vale Furado",
+      "shortName": "Vale Furado",
+      "region": "Alcobaça",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.676,
+      "longitude": -9.0585,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "gralha",
+      "displayName": "Praia da Gralha",
+      "shortName": "Gralha",
+      "region": "Alcobaça",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.5243,
+      "longitude": -9.132,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "sao-martinho-do-porto",
+      "displayName": "Praia de São Martinho do Porto",
+      "shortName": "São Martinho do Porto",
+      "region": "Alcobaça",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.5098,
+      "longitude": -9.1358,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "salgado",
+      "displayName": "Praia do Salgado",
+      "shortName": "Salgado",
+      "region": "Nazaré",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.5508,
+      "longitude": -9.1109,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "nazare",
+      "displayName": "Praia da Nazaré",
+      "shortName": "Nazaré",
+      "region": "Nazaré",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.6019,
+      "longitude": -9.0708,
+      "tideModelId": "nazare"
+    },
+    {
+      "id": "praia-do-norte",
+      "displayName": "Praia do Norte",
+      "shortName": "Praia do Norte",
+      "region": "Nazaré",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.6206,
+      "longitude": -9.0854,
+      "tideModelId": "nazare"
+    }
+  ]
+}

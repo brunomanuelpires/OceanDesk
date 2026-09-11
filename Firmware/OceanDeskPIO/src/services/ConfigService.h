@@ -14,6 +14,7 @@ struct DeviceConfig
 {
     String wifiSsid;
     String wifiPassword;
+    String beachId;
     String beachName;
     String tideStation;
     String timezone;
@@ -30,6 +31,7 @@ public:
     static const DeviceConfig &get();
     static bool save(const DeviceConfig &newConfig);
     static bool reset();
+    static bool selectBeach(DeviceConfig &target, const String &beachId);
     static const char *displayStyleName(DisplayStyle style);
     static bool parseDisplayStyle(const String &value, DisplayStyle &style);
 };
