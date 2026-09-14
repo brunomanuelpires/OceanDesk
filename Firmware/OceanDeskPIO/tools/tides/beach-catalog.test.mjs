@@ -12,10 +12,19 @@ test("validates every v1 beach against an embedded, nearest tide model", () => {
   const validated = validateBeachCatalog(catalog, stationDataset);
 
   assert.equal(validated.beaches.length, 14);
-  assert.deepEqual(validated.tideModels.map(({ id }) => id), ["nazare"]);
+  assert.deepEqual(validated.tideModels.map(({ id }) => id), ["nazare", "peniche"]);
   assert.ok(validated.beaches.every(({ area }) => area === "mainland"));
   assert.ok(validated.beaches.every(({ tideModelId }) => tideModelId === "nazare"));
   assert.ok(validated.beaches.every(({ mappedDistanceKm }) => mappedDistanceKm <= 45));
+});
+
+test("catalogues the validated Peniche model without unlocking beaches", () => {
+  const validated = validateBeachCatalog(catalog, stationDataset);
+  const peniche = validated.tideModels.find(({ id }) => id === "peniche");
+
+  assert.equal(peniche?.stationId, "ticon/penichetg-pen-prt-cmems");
+  assert.equal(peniche?.firmwareSupported, true);
+  assert.equal(validated.beaches.some(({ tideModelId }) => tideModelId === "peniche"), false);
 });
 
 test("keeps island areas valid without claiming unsupported beach mappings", () => {

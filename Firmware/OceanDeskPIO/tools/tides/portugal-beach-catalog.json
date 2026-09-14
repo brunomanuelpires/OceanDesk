@@ -9,6 +9,14 @@
       "area": "mainland",
       "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
       "firmwareSupported": true
+    },
+    {
+      "id": "peniche",
+      "stationId": "ticon/penichetg-pen-prt-cmems",
+      "displayName": "Peniche",
+      "area": "mainland",
+      "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
+      "firmwareSupported": true
     }
   ],
   "beaches": [

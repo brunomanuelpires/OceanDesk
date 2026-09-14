@@ -12,9 +12,10 @@
     "test:beach-catalog": "sh scripts/test_beach_catalog.sh",
     "test:tide-engine": "sh scripts/test_tide_engine.sh",
     "test:tide-engine-external": "sh scripts/test_tide_engine_external.sh",
-    "test:tides": "node --test tools/tides/*.test.mjs && npm run tides:generate-nazare -- --check && npm run tides:generate-beach-catalog -- --check",
+    "test:tides": "node --test tools/tides/*.test.mjs && npm run tides:generate-nazare -- --check && npm run tides:generate-peniche -- --check && npm run tides:generate-beach-catalog -- --check",
     "tides:generate-beach-catalog": "node tools/tides/generate-beach-catalog.mjs",
     "tides:generate-nazare": "node tools/tides/generate-nazare-tide-data.mjs",
+    "tides:generate-peniche": "node tools/tides/generate-peniche-tide-data.mjs",
     "tides:portugal": "node tools/tides/portugal-stations.mjs"
   },
   "keywords": [],

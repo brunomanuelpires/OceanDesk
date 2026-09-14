@@ -15,6 +15,7 @@ npm run tides:portugal -- --nearest 5
 npm run tides:portugal -- --json
 npm run tides:portugal -- --output tools/tides/generated/portugal-stations.json
 npm run tides:generate-nazare
+npm run tides:generate-peniche
 npm run tides:generate-beach-catalog
 npm run test:tides
 ```
@@ -52,22 +53,28 @@ in the same geographic area, and it is no more than 45 km away. The generated
 `src/locations/PortugalBeachCatalogData.inc` is checked by `npm test`.
 
 The catalog types already distinguish mainland Portugal, the Azores and Madeira.
-V1 intentionally contains no island beaches because those station models are not
-yet compiled and validated in `TideService`.
+The 14 v1 beaches remain mapped to Nazaré. Peniche is now a compiled and
+externally validated tide model, but no Peniche-area beaches are unlocked until
+their catalog mappings receive a separate review. V1 intentionally contains no
+island beaches because those station models are not yet compiled and validated
+in `TideService`.
 
 ## ESP32 development engine
 
-`src/tides/data/NazareTideData.h/.cpp` are generated from the normalized JSON by
-`npm run tides:generate-nazare`. The generator embeds all 50 Nazaré constituents,
-resolves their Doodson coefficients through the pinned `@neaps/tide-predictor`
-definitions, and keeps the original eight major constituents first to support a
-host-side 8-versus-50 regression comparison. `npm test` also checks that the
-generated C++ files are current.
+`src/tides/data/NazareTideData.h/.cpp` and
+`src/tides/data/PenicheTideData.h/.cpp` are generated from the normalized JSON by
+`npm run tides:generate-nazare` and `npm run tides:generate-peniche`. Each
+generator embeds all 50 constituents, resolves their Doodson coefficients
+through the pinned `@neaps/tide-predictor` definitions, and keeps the same eight
+major constituents first to support host-side 8-versus-50 regression checks.
+`npm test` also checks that both generated C++ datasets are current.
 
-Nazaré is strictly a development station:
-its TICON-4/GESLA data is licensed **CC BY-NC 4.0**, which forbids commercial
-use. It must be replaced by commercially distributable station data before any
-commercial firmware or product distribution.
+Nazaré and Peniche are strictly development stations. Their records are
+`ticon/nazaretg-naz-prt-cmems` and `ticon/penichetg-pen-prt-cmems` from TICON-4,
+published through the pinned `@neaps/tide-database@0.9.20260801`. Both retain the
+upstream GESLA restriction and are licensed **CC BY-NC 4.0**, which forbids
+commercial use. They must be replaced by commercially distributable station
+data before any commercial firmware or product distribution.
 
 The engine returns the astronomical height anomaly in metres relative to mean
 sea level (MSL). `TidePrediction` derives the current trend and the surrounding
@@ -76,10 +83,12 @@ high- and low-water events without changing `TideEngine`'s public API.
 after NTP synchronization and refreshes it every 15 minutes. `HomeScreen` shows
 the current trend, predicted height and the next high- and low-water times.
 
-For the Nazaré development station, the displayed and event heights add the
-Instituto Hidrografico's published mean level of 2.00 m above Zero Hidrografico
-(ZH). This is a station-specific MSL-anomaly-to-ZH alignment, not a general
-datum conversion.
+For both development stations, the displayed and event heights add the Instituto
+Hidrografico's published mean level of 2.00 m above Zero Hidrografico (ZH).
+This is a station-specific MSL-anomaly-to-ZH alignment, not a general datum
+conversion. `TideModelRegistry` keeps model id, harmonics, coordinates and datum
+together; `TideService` resolves the configured model internally without
+changing its public API.
 
 Amplitude (`f`) and phase (`u`) nodal corrections reproduce the default IHO
 fundamentals and compound-constituent composition used by the pinned
@@ -121,8 +130,10 @@ https://loja.hidrografico.pt/ln/web/wp-content/uploads/2023/11/TabelaMare_I_2026
 Retrieved 2026-09-03; SHA-256:
 `e0c6512e2df1e940f982dadeb353c5dd6d70dfd262a4c79230c2f29a4051d589`.
 
-Nazaré is not a primary port in that publication. The reference fixture is
-therefore derived exactly as the publication instructs:
+Peniche is a primary port in that publication. Its validation fixture copies the
+eight published high/low events for 1-2 January 2026 directly from page 2-43
+(PDF page 65). Nazaré is not a primary port, so its fixture is derived exactly as
+the publication instructs:
 
 - Peniche predictions for 1-2 January 2026 come from page 2-43 (PDF page 65).
 - Nazaré's concordance with Peniche comes from page 3-2 (PDF page 194).
@@ -143,21 +154,23 @@ validation results. The 50-constituent development dataset is the TICON-4
 `nazaretg-naz-prt-cmems` record (observation epoch 2014-09-20 to 2025-06-30),
 distributed through the pinned Neaps database under CC BY-NC 4.0.
 
-The test keeps eight derived events (four high waters and four low waters) over
-48 hours. It locates the nearby OceanDesk extremum on a one-minute grid and
-refines it parabolically, but does not add extreme searching to `TideEngine`.
-It reports signed mean error, maximum absolute error and RMSE for event time and
-height. The primary-port heights in the IH table are truncated to 0.1 m, so this
-is a useful independent regression check, not evidence of centimetric accuracy.
-The Nazaré high-water time corrections also require linear interpolation; the
+Each test keeps eight events (four high waters and four low waters) over 48 hours.
+It locates the nearby OceanDesk extremum on a one-minute grid and refines it
+parabolically, but does not add extreme searching to `TideEngine`. It reports
+signed mean error, maximum absolute error and RMSE for event time and height.
+The primary-port heights in the IH table are truncated to 0.1 m, so this is a
+useful independent regression check, not evidence of centimetric accuracy. The
+Nazaré high-water time corrections also require linear interpolation; that
 fixture retains the result to the nearest second.
 
-Baseline result for the current engine (eight events):
+Baseline results for the current engine (eight events per station):
 
-| Quantity | Signed mean error | Maximum absolute error | RMSE |
-| --- | ---: | ---: | ---: |
-| Event time | +7.26 min | 9.49 min | 7.50 min |
-| Height relative to ZH | -0.07 m | 0.11 m | 0.07 m |
+| Station | Quantity | Signed mean error | Maximum absolute error | RMSE |
+| --- | --- | ---: | ---: | ---: |
+| Nazaré | Event time | +7.26 min | 9.49 min | 7.50 min |
+| Nazaré | Height relative to ZH | -0.07 m | 0.11 m | 0.07 m |
+| Peniche | Event time | -1.55 min | 2.57 min | 1.67 min |
+| Peniche | Height relative to ZH | +0.01 m | 0.08 m | 0.05 m |
 
 Positive time error means OceanDesk is later; negative height error means it is
 lower. The regression gates are deliberately visible: maximum timing error no
@@ -166,5 +179,5 @@ RMSE no greater than 0.10 m. These gates detect material regressions but do not
 erase or reinterpret the systematic offsets above.
 
 This check does not compare continuous hourly curves, observations, weather,
-waves or storm surge. The embedded Nazaré harmonics and this fixture remain
-development-only; the harmonic source licence is CC BY-NC 4.0.
+waves or storm surge. The embedded Nazaré and Peniche harmonics and these
+fixtures remain development-only; the harmonic source licence is CC BY-NC 4.0.

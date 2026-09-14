@@ -13,6 +13,8 @@ ${CXX:-c++} \
     -I "$project_dir/src" \
     "$project_dir/src/tides/TideEngine.cpp" \
     "$project_dir/src/tides/data/NazareTideData.cpp" \
+    "$project_dir/src/tides/data/PenicheTideData.cpp" \
+    "$project_dir/src/tides/data/TideModelRegistry.cpp" \
     "$project_dir/test/tide_engine/test_tide_engine.cpp" \
     -o "$build_dir/test_tide_engine"
 

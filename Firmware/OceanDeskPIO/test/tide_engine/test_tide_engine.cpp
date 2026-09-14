@@ -1,9 +1,12 @@
 #include "tides/TideEngine.h"
 #include "tides/data/NazareTideData.h"
+#include "tides/data/PenicheTideData.h"
+#include "tides/data/TideModelRegistry.h"
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 
@@ -68,6 +71,37 @@ int main()
     }
     assert(largestFixedDifference > 0.05);
 
+    const TideEngine penicheEngine(TideDevelopmentData::peniche);
+    assert(penicheEngine.valid());
+    assert(penicheEngine.station().constituentCount == 50);
+    assert(penicheEngine.station().developmentOnly);
+
+    const TideHarmonicStation penicheMajor8Station = {
+        "peniche-major-8-test-baseline",
+        "Peniche major 8 test baseline",
+        penicheEngine.station().source,
+        penicheEngine.station().license,
+        penicheEngine.station().constituents,
+        8,
+        true,
+    };
+    const TideEngine penicheMajor8Engine(penicheMajor8Station);
+    const double expectedPenicheUncorrectedMajor8[] = {1.203909, -1.156815, 1.065102};
+    const double expectedPenicheUncorrectedFull50[] = {1.221074, -1.221579, 1.116695};
+    const double expectedPenicheCorrectedMajor8[] = {1.149510, -1.108754, 0.996447};
+    const double expectedPenicheCorrectedFull50[] = {1.163083, -1.170339, 1.043924};
+    for (size_t index = 0; index < 3; ++index)
+    {
+        expectNear(penicheMajor8Engine.predictHeightWithoutNodalCorrections(fixedTimestamps[index]),
+                   expectedPenicheUncorrectedMajor8[index], 0.00001);
+        expectNear(penicheEngine.predictHeightWithoutNodalCorrections(fixedTimestamps[index]),
+                   expectedPenicheUncorrectedFull50[index], 0.00001);
+        expectNear(penicheMajor8Engine.predictHeight(fixedTimestamps[index]),
+                   expectedPenicheCorrectedMajor8[index], 0.00001);
+        expectNear(penicheEngine.predictHeight(fixedTimestamps[index]),
+                   expectedPenicheCorrectedFull50[index], 0.00001);
+    }
+
     // Direct f/u checks keep the nodal calculation testable independently of
     // the harmonic sum and cover simple, nonlinear and compound corrections.
     const TideNodalCorrection m2 = engine.nodalCorrection(0, fixedTimestamps[0]);
@@ -109,6 +143,30 @@ int main()
     assert(maximum < 2.0);
     assert(maximum - minimum > 1.5);
 
+    double penicheMinimum = penicheEngine.predictHeight(1767225600);
+    double penicheMaximum = penicheMinimum;
+    double penichePrevious = penicheMinimum;
+    for (int step = 1; step <= 48 * 12; ++step)
+    {
+        const double height = penicheEngine.predictHeight(1767225600 + step * 300);
+        assert(std::isfinite(height));
+        assert(std::abs(height - penichePrevious) < 0.25);
+        penicheMinimum = std::min(penicheMinimum, height);
+        penicheMaximum = std::max(penicheMaximum, height);
+        penichePrevious = height;
+    }
+    assert(penicheMinimum > -2.0);
+    assert(penicheMaximum < 2.0);
+    assert(penicheMaximum - penicheMinimum > 1.5);
+
+    const TideRuntimeModel *penicheModel = TideModelRegistry::find("peniche");
+    assert(penicheModel != nullptr);
+    assert(penicheModel->station == &TideDevelopmentData::peniche);
+    assert(std::strcmp(penicheModel->station->id, "ticon/penichetg-pen-prt-cmems") == 0);
+    expectNear(TideModelRegistry::heightAboveHydrographicZero(*penicheModel, 1.0), 3.0, 0.0);
+    assert(TideModelRegistry::find("unsupported") == nullptr);
+    assert(TideModelRegistry::defaultModel().station == &TideDevelopmentData::nazare);
+
     const TideHarmonicStation empty = {"empty", "Empty", "test", "test", nullptr, 0, true};
     const TideEngine invalidEngine(empty);
     assert(!invalidEngine.valid());
@@ -118,6 +176,6 @@ int main()
     expectNear(invalidCorrection.amplitudeFactor, 1.0, 0.0);
     expectNear(invalidCorrection.phaseDegrees, 0.0, 0.0);
 
-    std::cout << "TideEngine sanity tests passed (50 Nazaré development constituents, IHO nodal corrections).\n";
+    std::cout << "TideEngine sanity tests passed (50 Nazaré + 50 Peniche development constituents, IHO nodal corrections).\n";
     return 0;
 }
