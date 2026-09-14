@@ -38,7 +38,7 @@ in generated output. Keep the attribution when distributing derived data.
 These are astronomical tide harmonics. They do not account for weather, waves or
 storm surge and must not be used for navigation or safety-critical decisions.
 
-## Beach Catalog v1
+## Beach Catalog v2
 
 `portugal-beach-catalog.json` is the editable source for the locations shown in
 the ESP settings page. Each beach has its own stable id, display and short names,
@@ -47,17 +47,30 @@ models separately identify the generated station record, firmware availability
 and POSIX timezone.
 
 `generate-beach-catalog.mjs` validates every mapping against the normalized
-Portuguese station inventory. A v1 beach is accepted only when its model is
+Portuguese station inventory. A beach is accepted only when its model is
 compiled into the firmware, the mapped station is the nearest inventory station
 in the same geographic area, and it is no more than 45 km away. The generated
 `src/locations/PortugalBeachCatalogData.inc` is checked by `npm test`.
 
 The catalog types already distinguish mainland Portugal, the Azores and Madeira.
-The 14 v1 beaches remain mapped to Nazaré. Peniche is now a compiled and
-externally validated tide model, but no Peniche-area beaches are unlocked until
-their catalog mappings receive a separate review. V1 intentionally contains no
-island beaches because those station models are not yet compiled and validated
-in `TideService`.
+The original 14 beaches remain mapped to Nazaré. V2 unlocks eight reviewed
+Peniche-area locations: Peniche de Cima, Baleal Sul, Baleal Norte, Gambôa, Cova
+da Alfarroba, Molhe Leste, Medão-Supertubos and Consolação. Peniche is the
+nearest inventory station for each location, at distances from 0.45 km to 3.38
+km. The catalog still intentionally contains no island beaches because those
+station models are not yet compiled and validated in `TideService`.
+
+The Peniche names and bathing-water identities were checked against the
+[APA/ARH Tejo e Oeste list](https://apambiente.pt/apa/arh-do-tejo-e-oeste).
+Coordinates use the APA records for
+[Peniche de Cima](https://rmsl.apambiente.pt/content/peniche-de-cima),
+[Molhe Leste](https://rmsl.apambiente.pt/content/molhe-leste) and
+[Medão-Supertubos](https://rmsl.apambiente.pt/content/med%C3%A3o-supertubos),
+and the Associação Bandeira Azul records for
+[Baleal and Consolação](https://bandeiraazul.abaae.pt/municipio/peniche/),
+[Gambôa](https://bandeiraazul.abaae.pt/local-galardoado/gamboa/) and
+[Cova da Alfarroba](https://bandeiraazul.abaae.pt/local-galardoado/cova-da-alfarroba/).
+These references were retrieved on 2026-09-14.
 
 ## ESP32 development engine
 

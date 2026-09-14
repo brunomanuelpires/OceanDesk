@@ -9,7 +9,7 @@ using namespace BeachCatalog;
 
 int main()
 {
-    assert(beachCount() == 14);
+    assert(beachCount() == 22);
     assert(tideModelCount() == 2);
     assert(std::strcmp(defaultBeach().id, "agua-de-madeiros") == 0);
     assert(std::strcmp(screenName(defaultBeach()), "Água de Madeiros") == 0);
@@ -35,6 +35,24 @@ int main()
     assert(peniche != nullptr);
     assert(peniche->firmwareSupported);
     assert(std::strcmp(peniche->stationId, "ticon/penichetg-pen-prt-cmems") == 0);
+    const char *penicheBeachIds[] = {
+        "peniche-de-cima",
+        "baleal-sul",
+        "baleal-norte",
+        "gamboa",
+        "cova-da-alfarroba",
+        "molhe-leste",
+        "medao-supertubos",
+        "consolacao",
+    };
+    for (const char *beachId : penicheBeachIds)
+    {
+        const BeachLocation *beach = findBeach(beachId);
+        assert(beach != nullptr);
+        assert(std::strcmp(beach->region, "Peniche") == 0);
+        assert(std::strcmp(beach->tideModelId, "peniche") == 0);
+        assert(std::strcmp(beach->timezone, peniche->timezone) == 0);
+    }
     assert(findBeachByLegacyName("Água de Madeiros") == &defaultBeach());
     assert(findBeachByLegacyName("Praia da Água de Madeiros") == &defaultBeach());
 

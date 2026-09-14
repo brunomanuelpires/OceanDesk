@@ -19,4 +19,12 @@ constexpr BeachLocation beaches[] = {
     {"salgado", "Praia do Salgado", "Salgado", "Nazaré", "Portugal", GeographicArea::Mainland, 39.5508, -9.1109, "nazare", "WET0WEST,M3.5.0/1,M10.5.0"},
     {"nazare", "Praia da Nazaré", "Nazaré", "Nazaré", "Portugal", GeographicArea::Mainland, 39.6019, -9.0708, "nazare", "WET0WEST,M3.5.0/1,M10.5.0"},
     {"praia-do-norte", "Praia do Norte", "Praia do Norte", "Nazaré", "Portugal", GeographicArea::Mainland, 39.6206, -9.0854, "nazare", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"peniche-de-cima", "Praia de Peniche de Cima", "Peniche de Cima", "Peniche", "Portugal", GeographicArea::Mainland, 39.36228, -9.36835, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"baleal-sul", "Praia do Baleal Sul", "Baleal Sul", "Peniche", "Portugal", GeographicArea::Mainland, 39.370671, -9.338611, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"baleal-norte", "Praia do Baleal Norte", "Baleal Norte", "Peniche", "Portugal", GeographicArea::Mainland, 39.373654, -9.338815, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"gamboa", "Praia da Gambôa", "Gambôa", "Peniche", "Portugal", GeographicArea::Mainland, 39.364173, -9.372754, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"cova-da-alfarroba", "Praia da Cova da Alfarroba", "Cova da Alfarroba", "Peniche", "Portugal", GeographicArea::Mainland, 39.360483, -9.364042, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"molhe-leste", "Praia do Molhe Leste", "Molhe Leste", "Peniche", "Portugal", GeographicArea::Mainland, 39.35001, -9.368, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"medao-supertubos", "Praia do Medão-Supertubos", "Supertubos", "Peniche", "Portugal", GeographicArea::Mainland, 39.34536, -9.36441, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"consolacao", "Praia da Consolação", "Consolação", "Peniche", "Portugal", GeographicArea::Mainland, 39.324337, -9.358564, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
 };

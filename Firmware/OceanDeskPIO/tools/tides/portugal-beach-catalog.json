@@ -173,6 +173,94 @@
       "latitude": 39.6206,
       "longitude": -9.0854,
       "tideModelId": "nazare"
+    },
+    {
+      "id": "peniche-de-cima",
+      "displayName": "Praia de Peniche de Cima",
+      "shortName": "Peniche de Cima",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.36228,
+      "longitude": -9.36835,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "baleal-sul",
+      "displayName": "Praia do Baleal Sul",
+      "shortName": "Baleal Sul",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.370671,
+      "longitude": -9.338611,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "baleal-norte",
+      "displayName": "Praia do Baleal Norte",
+      "shortName": "Baleal Norte",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.373654,
+      "longitude": -9.338815,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "gamboa",
+      "displayName": "Praia da Gambôa",
+      "shortName": "Gambôa",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.364173,
+      "longitude": -9.372754,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "cova-da-alfarroba",
+      "displayName": "Praia da Cova da Alfarroba",
+      "shortName": "Cova da Alfarroba",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.360483,
+      "longitude": -9.364042,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "molhe-leste",
+      "displayName": "Praia do Molhe Leste",
+      "shortName": "Molhe Leste",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.35001,
+      "longitude": -9.368,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "medao-supertubos",
+      "displayName": "Praia do Medão-Supertubos",
+      "shortName": "Supertubos",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.34536,
+      "longitude": -9.36441,
+      "tideModelId": "peniche"
+    },
+    {
+      "id": "consolacao",
+      "displayName": "Praia da Consolação",
+      "shortName": "Consolação",
+      "region": "Peniche",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 39.324337,
+      "longitude": -9.358564,
+      "tideModelId": "peniche"
     }
   ]
 }
