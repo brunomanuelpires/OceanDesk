@@ -11,6 +11,8 @@
 #include "core/EventDispatcher.h"
 #include "services/TideService.h"
 #include "services/ConfigService.h"
+#include "services/BuzzerService.h"
+#include "services/AlarmService.h"
 #include "services/SetupWebService.h"
 #include "config/Theme.h"
 
@@ -61,6 +63,11 @@ void setup()
         return;
     }
 
+    auto ioExpander = board->getIO_Expander();
+    if (ioExpander == nullptr || !BuzzerService::begin(ioExpander->getBase())) {
+        Serial.println("ERROR: Buzzer output initialization failed.");
+    }
+
     Serial.println("Initializing LVGL...");
 
     if (!lvgl_port_init(board->getLCD(), board->getTouch())) {
@@ -85,6 +92,7 @@ void setup()
         WiFiService::beginStation(config.wifiSsid.c_str(), config.wifiPassword.c_str());
         NTPService::begin(config.timezone.c_str());
         TideService::begin();
+        AlarmService::begin();
     }
     SetupWebService::begin();
 
@@ -109,22 +117,33 @@ void setup()
 
 void loop()
 {
+    // Keep the web server and short buzzer pattern responsive without changing
+    // the existing one-second cadence of the display and data services.
+    SetupWebService::update();
+    BuzzerService::update();
+
     if (setupMode)
     {
-        SetupWebService::update();
         delay(10);
         return;
     }
 
-    WiFiService::update();
-    SetupWebService::update();
-    ClockService::update();
-    NTPService::update();
-    TideService::update();
+    AlarmService::update();
 
-    lvgl_port_lock(-1);
-    EventDispatcher::refresh();
-    lvgl_port_unlock();
+    static unsigned long lastPeriodicUpdate = 0;
+    const unsigned long now = millis();
+    if (now - lastPeriodicUpdate >= 1000)
+    {
+        lastPeriodicUpdate = now;
+        WiFiService::update();
+        ClockService::update();
+        NTPService::update();
+        TideService::update();
 
-    delay(1000);
+        lvgl_port_lock(-1);
+        EventDispatcher::refresh();
+        lvgl_port_unlock();
+    }
+
+    delay(10);
 }

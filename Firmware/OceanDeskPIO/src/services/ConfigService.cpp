@@ -16,6 +16,11 @@ constexpr const char *timezoneKey = "timezone";
 constexpr const char *textColorKey = "text_color";
 constexpr const char *backgroundColorKey = "bg_color";
 constexpr const char *displayStyleKey = "display";
+constexpr const char *alarmEnabledKey = "alarm_enabled";
+constexpr const char *alarmHourKey = "alarm_hour";
+constexpr const char *alarmMinuteKey = "alarm_minute";
+constexpr const char *lastAlarmDayKey = "alarm_last_day";
+constexpr const char *lastAlarmMinuteKey = "alarm_last_min";
 constexpr DisplayStyle defaultDisplayStyle = DisplayStyle::Classic;
 
 Preferences preferences;
@@ -62,6 +67,15 @@ void ConfigService::begin()
     config.timezone = preferences.getString(timezoneKey, defaultBeach.timezone);
     config.textColor = preferences.getULong(textColorKey, 0xFFFFFF);
     config.backgroundColor = preferences.getULong(backgroundColorKey, 0x0B1620);
+    config.alarmEnabled = preferences.getBool(alarmEnabledKey, false);
+    config.alarmHour = preferences.getUChar(alarmHourKey, 7);
+    config.alarmMinute = preferences.getUChar(alarmMinuteKey, 0);
+    if (config.alarmHour > 23 || config.alarmMinute > 59)
+    {
+        config.alarmEnabled = false;
+        config.alarmHour = 7;
+        config.alarmMinute = 0;
+    }
     DisplayStyle storedDisplayStyle;
     if (!ConfigService::parseDisplayStyle(
             preferences.getString(displayStyleKey, ConfigService::displayStyleName(defaultDisplayStyle)),
@@ -121,8 +135,9 @@ bool ConfigService::save(const DeviceConfig &newConfig)
                                    tideModel != nullptr && tideModel->firmwareSupported &&
                                    isLegacyTimezone(newConfig.timezone);
     const char *displayStyle = displayStyleName(newConfig.displayStyle);
+    const bool validAlarm = newConfig.alarmHour <= 23 && newConfig.alarmMinute <= 59;
     if (!initialized || newConfig.wifiSsid.isEmpty() || newConfig.beachName.isEmpty() ||
-        (!validCatalogBeach && !validLegacyBeach) || displayStyle == nullptr)
+        (!validCatalogBeach && !validLegacyBeach) || displayStyle == nullptr || !validAlarm)
     {
         return false;
     }
@@ -139,7 +154,10 @@ bool ConfigService::save(const DeviceConfig &newConfig)
         preferences.putString(timezoneKey, newConfig.timezone) == newConfig.timezone.length() &&
         preferences.putULong(textColorKey, newConfig.textColor) == sizeof(uint32_t) &&
         preferences.putULong(backgroundColorKey, newConfig.backgroundColor) == sizeof(uint32_t) &&
-        preferences.putString(displayStyleKey, displayStyle) == strlen(displayStyle);
+        preferences.putString(displayStyleKey, displayStyle) == strlen(displayStyle) &&
+        preferences.putBool(alarmEnabledKey, newConfig.alarmEnabled) == sizeof(bool) &&
+        preferences.putUChar(alarmHourKey, newConfig.alarmHour) == sizeof(uint8_t) &&
+        preferences.putUChar(alarmMinuteKey, newConfig.alarmMinute) == sizeof(uint8_t);
 
     if (!ssidSaved || !passwordSaved || !settingsSaved || !preferences.putBool(configuredKey, true))
     {
@@ -203,4 +221,17 @@ bool ConfigService::parseDisplayStyle(const String &value, DisplayStyle &style)
     else if (value == "info") style = DisplayStyle::Info;
     else return false;
     return true;
+}
+
+bool ConfigService::wasAlarmTriggered(uint32_t day, uint16_t scheduledMinute)
+{
+    return initialized && preferences.getULong(lastAlarmDayKey, 0) == day &&
+           preferences.getUShort(lastAlarmMinuteKey, UINT16_MAX) == scheduledMinute;
+}
+
+bool ConfigService::markAlarmTriggered(uint32_t day, uint16_t scheduledMinute)
+{
+    return initialized &&
+           preferences.putUShort(lastAlarmMinuteKey, scheduledMinute) == sizeof(uint16_t) &&
+           preferences.putULong(lastAlarmDayKey, day) == sizeof(uint32_t);
 }

@@ -21,6 +21,9 @@ struct DeviceConfig
     uint32_t textColor;
     uint32_t backgroundColor;
     DisplayStyle displayStyle = DisplayStyle::Classic;
+    bool alarmEnabled = false;
+    uint8_t alarmHour = 7;
+    uint8_t alarmMinute = 0;
 };
 
 class ConfigService
@@ -34,4 +37,6 @@ public:
     static bool selectBeach(DeviceConfig &target, const String &beachId);
     static const char *displayStyleName(DisplayStyle style);
     static bool parseDisplayStyle(const String &value, DisplayStyle &style);
+    static bool wasAlarmTriggered(uint32_t day, uint16_t scheduledMinute);
+    static bool markAlarmTriggered(uint32_t day, uint16_t scheduledMinute);
 };
