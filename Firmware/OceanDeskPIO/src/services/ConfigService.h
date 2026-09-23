@@ -24,6 +24,11 @@ struct DeviceConfig
     bool alarmEnabled = false;
     uint8_t alarmHour = 7;
     uint8_t alarmMinute = 0;
+    uint8_t brightness = 100;
+    bool nightModeEnabled = true;
+    uint8_t nightBrightness = 35;
+    uint16_t nightStartMinute = 22 * 60 + 30;
+    uint16_t nightEndMinute = 7 * 60;
 };
 
 class ConfigService
@@ -39,4 +44,7 @@ public:
     static bool parseDisplayStyle(const String &value, DisplayStyle &style);
     static bool wasAlarmTriggered(uint32_t day, uint16_t scheduledMinute);
     static bool markAlarmTriggered(uint32_t day, uint16_t scheduledMinute);
+    static bool saveDisplayStyle(DisplayStyle style);
+    static void setDisplayStylePreview(DisplayStyle style);
+    static bool saveBrightness(uint8_t brightness, bool nightModeEnabled);
 };

@@ -21,6 +21,13 @@ constexpr const char *alarmHourKey = "alarm_hour";
 constexpr const char *alarmMinuteKey = "alarm_minute";
 constexpr const char *lastAlarmDayKey = "alarm_last_day";
 constexpr const char *lastAlarmMinuteKey = "alarm_last_min";
+constexpr const char *brightnessKey = "brightness";
+constexpr const char *nightModeKey = "night_mode";
+// NVS keys are limited to 15 characters on ESP32.  The former key
+// "night_brightness" had 16 and made every full configuration save fail.
+constexpr const char *nightBrightnessKey = "night_bright";
+constexpr const char *nightStartKey = "night_start";
+constexpr const char *nightEndKey = "night_end";
 constexpr DisplayStyle defaultDisplayStyle = DisplayStyle::Classic;
 
 Preferences preferences;
@@ -70,6 +77,15 @@ void ConfigService::begin()
     config.alarmEnabled = preferences.getBool(alarmEnabledKey, false);
     config.alarmHour = preferences.getUChar(alarmHourKey, 7);
     config.alarmMinute = preferences.getUChar(alarmMinuteKey, 0);
+    config.brightness = preferences.getUChar(brightnessKey, 100);
+    config.nightModeEnabled = preferences.getBool(nightModeKey, true);
+    config.nightBrightness = preferences.getUChar(nightBrightnessKey, 35);
+    config.nightStartMinute = preferences.getUShort(nightStartKey, 22 * 60 + 30);
+    config.nightEndMinute = preferences.getUShort(nightEndKey, 7 * 60);
+    if (config.brightness < 25 || config.brightness > 100) config.brightness = 100;
+    if (config.nightBrightness < 5 || config.nightBrightness > 100) config.nightBrightness = 35;
+    if (config.nightStartMinute >= 24 * 60 || config.nightEndMinute >= 24 * 60)
+    { config.nightStartMinute = 22 * 60 + 30; config.nightEndMinute = 7 * 60; }
     if (config.alarmHour > 23 || config.alarmMinute > 59)
     {
         config.alarmEnabled = false;
@@ -136,14 +152,21 @@ bool ConfigService::save(const DeviceConfig &newConfig)
                                    isLegacyTimezone(newConfig.timezone);
     const char *displayStyle = displayStyleName(newConfig.displayStyle);
     const bool validAlarm = newConfig.alarmHour <= 23 && newConfig.alarmMinute <= 59;
+    const bool validBrightness = newConfig.brightness >= 25 && newConfig.brightness <= 100 &&
+                                 newConfig.nightBrightness >= 5 && newConfig.nightBrightness <= 100 &&
+                                 newConfig.nightStartMinute < 24 * 60 && newConfig.nightEndMinute < 24 * 60;
     if (!initialized || newConfig.wifiSsid.isEmpty() || newConfig.beachName.isEmpty() ||
-        (!validCatalogBeach && !validLegacyBeach) || displayStyle == nullptr || !validAlarm)
+        (!validCatalogBeach && !validLegacyBeach) || displayStyle == nullptr || !validAlarm || !validBrightness)
     {
+        Serial.printf("Config: validation failed (wifi=%d beach=%d catalog=%d legacy=%d display=%d alarm=%d brightness=%d)\n",
+                      !newConfig.wifiSsid.isEmpty(), !newConfig.beachName.isEmpty(), validCatalogBeach,
+                      validLegacyBeach, displayStyle != nullptr, validAlarm, validBrightness);
         return false;
     }
 
-    // Mark the record valid only after both values have been written.
-    preferences.putBool(configuredKey, false);
+    // Keep the last known-good marker until every new value is written. A bad
+    // browser submission must never force an otherwise working device back to setup.
+    const bool wasConfigured = configured;
     const bool ssidSaved = preferences.putString(wifiSsidKey, newConfig.wifiSsid) == newConfig.wifiSsid.length();
     const bool passwordSaved =
         preferences.putString(wifiPasswordKey, newConfig.wifiPassword) == newConfig.wifiPassword.length();
@@ -157,11 +180,18 @@ bool ConfigService::save(const DeviceConfig &newConfig)
         preferences.putString(displayStyleKey, displayStyle) == strlen(displayStyle) &&
         preferences.putBool(alarmEnabledKey, newConfig.alarmEnabled) == sizeof(bool) &&
         preferences.putUChar(alarmHourKey, newConfig.alarmHour) == sizeof(uint8_t) &&
-        preferences.putUChar(alarmMinuteKey, newConfig.alarmMinute) == sizeof(uint8_t);
+        preferences.putUChar(alarmMinuteKey, newConfig.alarmMinute) == sizeof(uint8_t) &&
+        preferences.putUChar(brightnessKey, newConfig.brightness) == sizeof(uint8_t) &&
+        preferences.putBool(nightModeKey, newConfig.nightModeEnabled) == sizeof(bool) &&
+        preferences.putUChar(nightBrightnessKey, newConfig.nightBrightness) == sizeof(uint8_t) &&
+        preferences.putUShort(nightStartKey, newConfig.nightStartMinute) == sizeof(uint16_t) &&
+        preferences.putUShort(nightEndKey, newConfig.nightEndMinute) == sizeof(uint16_t);
 
     if (!ssidSaved || !passwordSaved || !settingsSaved || !preferences.putBool(configuredKey, true))
     {
-        configured = false;
+        Serial.printf("Config: storage failed (ssid=%d password=%d settings=%d)\n",
+                      ssidSaved, passwordSaved, settingsSaved);
+        configured = wasConfigured;
         return false;
     }
 
@@ -234,4 +264,33 @@ bool ConfigService::markAlarmTriggered(uint32_t day, uint16_t scheduledMinute)
     return initialized &&
            preferences.putUShort(lastAlarmMinuteKey, scheduledMinute) == sizeof(uint16_t) &&
            preferences.putULong(lastAlarmDayKey, day) == sizeof(uint32_t);
+}
+
+bool ConfigService::saveDisplayStyle(DisplayStyle style)
+{
+    const char *name = displayStyleName(style);
+    if (!initialized || name == nullptr || preferences.putString(displayStyleKey, name) != strlen(name))
+    {
+        return false;
+    }
+    config.displayStyle = style;
+    return true;
+}
+
+void ConfigService::setDisplayStylePreview(DisplayStyle style)
+{
+    config.displayStyle = style;
+}
+
+bool ConfigService::saveBrightness(uint8_t brightness, bool nightModeEnabled)
+{
+    if (!initialized || brightness < 25 || brightness > 100 ||
+        preferences.putUChar(brightnessKey, brightness) != sizeof(uint8_t) ||
+        preferences.putBool(nightModeKey, nightModeEnabled) != sizeof(bool))
+    {
+        return false;
+    }
+    config.brightness = brightness;
+    config.nightModeEnabled = nightModeEnabled;
+    return true;
 }

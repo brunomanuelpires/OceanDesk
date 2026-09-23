@@ -110,6 +110,14 @@ public:
     void create(lv_obj_t *parent, lv_coord_t x, lv_coord_t y,
                 lv_coord_t width, lv_coord_t height, lv_coord_t lineWidth)
     {
+        if (alphaBuffer != nullptr)
+        {
+            heap_caps_free(alphaBuffer);
+            alphaBuffer = nullptr;
+        }
+        curve = nullptr;
+        marker = nullptr;
+        curveRendered = false;
         container = lv_obj_create(parent);
         lv_obj_remove_style_all(container);
         lv_obj_set_pos(container, x, y);
@@ -304,7 +312,7 @@ class ClassicLayout final : public HomeScreenLayout
 public:
     void create(lv_obj_t *screen) override
     {
-        Header::create();
+        Header::create(screen);
         createLabel(screen, ConfigService::get().beachName.c_str(), Theme::FontMedium,
                     Theme::color(Theme::Text), LV_ALIGN_TOP_RIGHT, -22, 18);
         status = createLabel(screen, "", Theme::FontLarge, Theme::color(Theme::Text),

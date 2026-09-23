@@ -5,7 +5,8 @@
 class Header
 {
 public:
-    static void create();
+    static void create(lv_obj_t *parent);
+    static void clear();
     static void refresh();
 
 private:

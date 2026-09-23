@@ -39,7 +39,11 @@ void appendBeachOptions(String &page, const DeviceConfig &config)
 {
     const BeachCatalog::BeachLocation *selected =
         BeachCatalog::findBeach(config.beachId.c_str());
-    if (selected == nullptr)
+    if (selected == nullptr && !ConfigService::isConfigured())
+    {
+        selected = &BeachCatalog::defaultBeach();
+    }
+    else if (selected == nullptr)
     {
         page += "<option value=\"__legacy__\" selected data-station=\"";
         page += escapeHtml(tideModelLabel(config.tideStation));
@@ -72,7 +76,11 @@ String buildPage()
 {
     const DeviceConfig &config = ConfigService::get();
     char alarmTime[6];
+    char nightStart[6];
+    char nightEnd[6];
     snprintf(alarmTime, sizeof(alarmTime), "%02u:%02u", config.alarmHour, config.alarmMinute);
+    snprintf(nightStart, sizeof(nightStart), "%02u:%02u", config.nightStartMinute / 60, config.nightStartMinute % 60);
+    snprintf(nightEnd, sizeof(nightEnd), "%02u:%02u", config.nightEndMinute / 60, config.nightEndMinute % 60);
     String page = R"HTML(<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OceanDesk</title><style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1620;color:#fff}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}main{width:min(100%,520px);background:#132430;border:1px solid #20313e;border-radius:22px;padding:30px;box-sizing:border-box}h1{margin:0 0 8px;font-size:30px}p,.hint{color:#a9bfcc;line-height:1.5}.notice{background:#143d36;border:1px solid #38c172;color:#dff8ec;padding:12px 14px;border-radius:12px;margin:16px 0;transition:opacity .25s ease}.details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding:13px;border-radius:12px;background:#0b1620;color:#a9bfcc;font-size:13px}.details strong{display:block;color:#fff;margin-top:3px}label{display:block;margin:18px 0 7px;font-weight:650}input,select{width:100%;box-sizing:border-box;border:1px solid #355063;border-radius:12px;background:#0b1620;color:#fff;padding:13px;font-size:16px}input[type=time]{width:100%;max-width:100%;min-width:0;height:52px;min-height:52px;padding:0;line-height:52px}input[type=color]{height:52px;padding:4px;background:transparent}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.alarm-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%}.alarm-fields label{min-width:0;margin:0;font-weight:400}.alarm-fields input,.alarm-fields select{display:block;margin-top:7px}.hint{font-size:13px;margin-top:7px}button{width:100%;margin-top:24px;border:0;border-radius:12px;background:#55c9f3;color:#08202b;padding:14px;font-size:16px;font-weight:750}</style></head><body><main><h1>OceanDesk</h1><p>Configura a localização e o aspeto do teu OceanDesk.</p>
 )HTML";
@@ -96,6 +104,31 @@ String buildPage()
     page += R"HTML(>Inativo</option><option value="1")HTML";
     if (config.alarmEnabled) page += " selected";
     page += R"HTML(>Ativo</option></select></label></div><div class="hint">Toca diariamente à hora escolhida, durante no máximo um minuto.</div>
+<label>Brilho</label><select name="brightness"><option value="25")HTML";
+    if (config.brightness == 25) page += " selected";
+    page += R"HTML(>25% — baixo</option><option value="50")HTML";
+    if (config.brightness == 50) page += " selected";
+    page += R"HTML(>50% — médio</option><option value="75")HTML";
+    if (config.brightness == 75) page += " selected";
+    page += R"HTML(>75% — alto</option><option value="100")HTML";
+    if (config.brightness == 100) page += " selected";
+    page += R"HTML(>100% — máximo</option></select><label>Modo noturno</label><select name="night_mode"><option value="0")HTML";
+    if (!config.nightModeEnabled) page += " selected";
+    page += R"HTML(>Inativo</option><option value="1")HTML";
+    if (config.nightModeEnabled) page += " selected";
+    page += R"HTML(>Ativo</option></select><div class="row"><div>Início<input name="night_start" type="time" value=")HTML";
+    page += nightStart;
+    page += R"HTML(" required></div><div>Fim<input name="night_end" type="time" value=")HTML";
+    page += nightEnd;
+    page += R"HTML(" required></div></div><label>Brilho noturno</label><select name="night_brightness"><option value="10")HTML";
+    if (config.nightBrightness == 10) page += " selected";
+    page += R"HTML(>10% — muito baixo</option><option value="20")HTML";
+    if (config.nightBrightness == 20) page += " selected";
+    page += R"HTML(>20% — baixo</option><option value="35")HTML";
+    if (config.nightBrightness == 35) page += " selected";
+    page += R"HTML(>35% — moderado</option><option value="50")HTML";
+    if (config.nightBrightness == 50) page += " selected";
+    page += R"HTML(>50% — alto</option></select><div class="hint">À noite o OceanDesk reduz visualmente a luminosidade. O controlo físico desta placa é apenas ligado/desligado.</div>
 <label>Cores</label><div class="row"><div>Texto<input name="text_color" type="color" value=")HTML";
     page += colorValue(config.textColor) + "\"></div><div>Fundo<input name=\"background_color\" type=\"color\" value=\"" + colorValue(config.backgroundColor) + "\"></div></div>";
     page += R"HTML(<button type="submit">Guardar alterações</button></form></main><script>document.querySelector('[name=display_style]').value=")HTML";
@@ -130,10 +163,18 @@ void handleConfigure()
 {
     DeviceConfig config = ConfigService::get();
     String ssid = server.arg("ssid"); ssid.trim();
-    String beachId = server.arg("beach_id"); beachId.trim();
-    if (beachId.isEmpty() || (!ConfigService::isConfigured() && ssid.isEmpty())) { server.send(400, "text/plain", "Preenche os campos obrigatórios."); return; }
+    String beachId = server.hasArg("beach_id") ? server.arg("beach_id") : config.beachId;
+    beachId.trim();
+    if (beachId.isEmpty() && config.beachId.isEmpty()) beachId = "__legacy__";
+    if ((!ConfigService::isConfigured() && ssid.isEmpty())) { server.send(400, "text/plain; charset=utf-8", "Preenche os campos obrigatórios."); return; }
     if (!ConfigService::isConfigured()) { config.wifiSsid = ssid; config.wifiPassword = server.arg("password"); }
-    if (beachId == "__legacy__")
+    if (beachId == "__legacy__" && !ConfigService::isConfigured())
+    {
+        // A new device has no legacy location. Use the catalog default unless
+        // the user explicitly selected a beach in the form.
+        ConfigService::selectBeach(config, BeachCatalog::defaultBeach().id);
+    }
+    else if (beachId == "__legacy__")
     {
         if (!config.beachId.isEmpty()) { server.send(400, "text/plain", "Localização inválida."); return; }
     }
@@ -141,16 +182,43 @@ void handleConfigure()
     {
         server.send(400, "text/plain", "Praia ou localização inválida."); return;
     }
-    if (!ConfigService::parseDisplayStyle(server.arg("display_style"), config.displayStyle))
+    if (!ConfigService::parseDisplayStyle(server.hasArg("display_style") ? server.arg("display_style") : String(ConfigService::displayStyleName(config.displayStyle)), config.displayStyle))
     { server.send(400, "text/plain", "Estilo de ecrã inválido."); return; }
-    const String alarmEnabled = server.arg("alarm_enabled");
+    const String alarmEnabled = server.hasArg("alarm_enabled") ? server.arg("alarm_enabled") : String(config.alarmEnabled ? "1" : "0");
+    char storedAlarmTime[6];
+    snprintf(storedAlarmTime, sizeof(storedAlarmTime), "%02u:%02u", config.alarmHour, config.alarmMinute);
+    const String alarmTime = server.hasArg("alarm_time") ? server.arg("alarm_time") : String(storedAlarmTime);
     if ((alarmEnabled != "0" && alarmEnabled != "1") ||
-        !parseAlarmTime(server.arg("alarm_time"), config.alarmHour, config.alarmMinute))
+        !parseAlarmTime(alarmTime, config.alarmHour, config.alarmMinute))
     { server.send(400, "text/plain", "Configuração do alarme inválida."); return; }
     config.alarmEnabled = alarmEnabled == "1";
-    if (!parseColor(server.arg("text_color"), config.textColor) ||
-        !parseColor(server.arg("background_color"), config.backgroundColor) || !ConfigService::save(config))
-    { server.send(400, "text/plain", "Configuração inválida."); return; }
+    const String brightness = server.hasArg("brightness") ? server.arg("brightness") : String(config.brightness);
+    const String nightMode = server.hasArg("night_mode") ? server.arg("night_mode") : String(config.nightModeEnabled ? "1" : "0");
+    if ((brightness != "25" && brightness != "50" && brightness != "75" && brightness != "100") ||
+        (nightMode != "0" && nightMode != "1"))
+    { server.send(400, "text/plain", "Configuração de brilho inválida."); return; }
+    config.brightness = static_cast<uint8_t>(brightness.toInt());
+    config.nightModeEnabled = nightMode == "1";
+    const String nightBrightness = server.hasArg("night_brightness") ? server.arg("night_brightness") : String(config.nightBrightness);
+    char storedNightStart[6], storedNightEnd[6];
+    snprintf(storedNightStart, sizeof(storedNightStart), "%02u:%02u", config.nightStartMinute / 60, config.nightStartMinute % 60);
+    snprintf(storedNightEnd, sizeof(storedNightEnd), "%02u:%02u", config.nightEndMinute / 60, config.nightEndMinute % 60);
+    const String nightStartValue = server.hasArg("night_start") ? server.arg("night_start") : String(storedNightStart);
+    const String nightEndValue = server.hasArg("night_end") ? server.arg("night_end") : String(storedNightEnd);
+    uint8_t nightStartHour, nightStartMinute, nightEndHour, nightEndMinute;
+    if ((nightBrightness != "10" && nightBrightness != "20" && nightBrightness != "35" &&
+         nightBrightness != "50") ||
+        !parseAlarmTime(nightStartValue, nightStartHour, nightStartMinute) ||
+        !parseAlarmTime(nightEndValue, nightEndHour, nightEndMinute))
+    { server.send(400, "text/plain; charset=utf-8", "Configuração noturna inválida."); return; }
+    config.nightBrightness = static_cast<uint8_t>(nightBrightness.toInt());
+    config.nightStartMinute = nightStartHour * 60U + nightStartMinute;
+    config.nightEndMinute = nightEndHour * 60U + nightEndMinute;
+    const String textColor = server.hasArg("text_color") ? server.arg("text_color") : colorValue(config.textColor);
+    const String backgroundColor = server.hasArg("background_color") ? server.arg("background_color") : colorValue(config.backgroundColor);
+    if (!parseColor(textColor, config.textColor) ||
+        !parseColor(backgroundColor, config.backgroundColor) || !ConfigService::save(config))
+    { server.send(400, "text/plain; charset=utf-8", "Configuração inválida."); return; }
     AlarmService::suspendUntilRestart();
     server.sendHeader("Location", "/?saved=1");
     server.send(303);
@@ -161,7 +229,7 @@ void handleConfigure()
 
 void SetupWebService::begin()
 {
-    server.on("/", HTTP_GET, []() { server.send(200, "text/html; charset=utf-8", buildPage()); });
+    server.on("/", HTTP_GET, []() { server.sendHeader("Cache-Control", "no-store"); server.send(200, "text/html; charset=utf-8", buildPage()); });
     server.on("/configure", HTTP_POST, handleConfigure);
     server.onNotFound([]() {
         const String host = WiFiService::isSetupMode() ? WiFiService::setupAddress() : "oceandesk.local";

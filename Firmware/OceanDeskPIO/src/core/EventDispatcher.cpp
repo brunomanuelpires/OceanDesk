@@ -1,6 +1,8 @@
 #include "EventDispatcher.h"
 #include "screens/HomeScreen.h"
 #include "widgets/Header.h"
+#include "../services/BrightnessService.h"
+#include "ScreenManager.h"
 
 void EventDispatcher::begin()
 {
@@ -9,6 +11,11 @@ void EventDispatcher::begin()
 
 void EventDispatcher::refresh()
 {
-    Header::refresh();
-    HomeScreen::refresh();
+    if (ScreenManager::isHomeVisible())
+    {
+        Header::refresh();
+        HomeScreen::refresh();
+        HomeScreen::update();
+    }
+    BrightnessService::update();
 }

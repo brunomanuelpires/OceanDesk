@@ -5,13 +5,12 @@
 
 lv_obj_t *Header::timeLabel = nullptr;
 lv_obj_t *Header::dateLabel = nullptr;
+namespace { lv_timer_t *updateTimer = nullptr; }
 
-void Header::create()
+void Header::create(lv_obj_t *parent)
 {
-    lv_obj_t *screen = lv_scr_act();
-
     // Título
-    lv_obj_t *title = lv_label_create(screen);
+    lv_obj_t *title = lv_label_create(parent);
     lv_label_set_text(title, "OceanDesk");
 
     lv_obj_align(
@@ -34,7 +33,7 @@ void Header::create()
     );
 
     // Hora
-    timeLabel = lv_label_create(screen);
+    timeLabel = lv_label_create(parent);
     lv_label_set_text(timeLabel, "--:--");
 
     lv_obj_align(
@@ -57,7 +56,7 @@ void Header::create()
     );
 
     // Data
-    dateLabel = lv_label_create(screen);
+    dateLabel = lv_label_create(parent);
     lv_label_set_text(dateLabel, "--");
 
     lv_obj_align(
@@ -83,11 +82,13 @@ void Header::create()
     refresh();
 
     // Atualiza o Header a cada segundo
-    lv_timer_create(
-        timerCallback,
-        1000,
-        nullptr
-    );
+    if (updateTimer == nullptr) updateTimer = lv_timer_create(timerCallback, 1000, nullptr);
+}
+
+void Header::clear()
+{
+    timeLabel = nullptr;
+    dateLabel = nullptr;
 }
 
 void Header::refresh()
