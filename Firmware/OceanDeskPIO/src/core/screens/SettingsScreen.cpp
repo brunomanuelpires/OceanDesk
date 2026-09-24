@@ -1,12 +1,13 @@
 #include "SettingsScreen.h"
 #include <lvgl.h>
 #include "config/Theme.h"
+#include "core/TimeOfDay.h"
 #include "services/ConfigService.h"
 
 namespace {
 lv_obj_t *overlay = nullptr, *brightnessLabel = nullptr, *nightLabel = nullptr;
 void text(lv_obj_t *o, const char *s, const lv_font_t *f, uint32_t c) { lv_label_set_text(o,s); lv_obj_set_style_text_font(o,f,0); lv_obj_set_style_text_color(o,Theme::color(c),0); }
-void refresh() { const DeviceConfig &c=ConfigService::get(); char b[24]; snprintf(b,sizeof(b),"Brilho  %u%%",c.brightness); lv_label_set_text(brightnessLabel,b); lv_label_set_text(nightLabel,c.nightModeEnabled?"Ativo 22:30 - 07:00":"Inativo"); }
+void refresh() { const DeviceConfig &c=ConfigService::get(); char b[24], nightStart[6], nightEnd[6], night[32]; snprintf(b,sizeof(b),"Brilho  %u%%",c.brightness); formatTimeOfDay(c.nightStartMinute,nightStart,sizeof(nightStart)); formatTimeOfDay(c.nightEndMinute,nightEnd,sizeof(nightEnd)); snprintf(night,sizeof(night),"Ativo %s - %s",nightStart,nightEnd); lv_label_set_text(brightnessLabel,b); lv_label_set_text(nightLabel,c.nightModeEnabled?night:"Inativo"); }
 void back(lv_event_t *) { SettingsScreen::close(); }
 void brightness(lv_event_t *e) { const DeviceConfig &c=ConfigService::get(); int n=c.brightness+reinterpret_cast<intptr_t>(lv_event_get_user_data(e)); n=n<25?25:(n>100?100:n); ConfigService::saveBrightness(n,c.nightModeEnabled); refresh(); }
 void night(lv_event_t *) { const DeviceConfig &c=ConfigService::get(); ConfigService::saveBrightness(c.brightness,!c.nightModeEnabled); refresh(); }

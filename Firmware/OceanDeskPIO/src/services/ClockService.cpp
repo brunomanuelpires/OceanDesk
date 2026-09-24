@@ -1,15 +1,16 @@
 #include "ClockService.h"
 
 #include <time.h>
+#include "RtcService.h"
 
 void ClockService::begin()
 {
-    // A configuração NTP e timezone é tratada pelo NTPService.
+    RtcService::begin();
 }
 
 void ClockService::update()
 {
-    // Por agora não é necessário fazer nada aqui.
+    RtcService::update();
 }
 
 String ClockService::getTime()

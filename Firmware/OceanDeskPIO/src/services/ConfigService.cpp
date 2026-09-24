@@ -9,6 +9,10 @@ constexpr const char *preferencesNamespace = "oceandesk";
 constexpr const char *configuredKey = "configured";
 constexpr const char *wifiSsidKey = "wifi_ssid";
 constexpr const char *wifiPasswordKey = "wifi_pass";
+constexpr const char *wifiSsid2Key = "wifi_ssid2";
+constexpr const char *wifiPassword2Key = "wifi_pass2";
+constexpr const char *wifiSsid3Key = "wifi_ssid3";
+constexpr const char *wifiPassword3Key = "wifi_pass3";
 constexpr const char *beachIdKey = "beach_id";
 constexpr const char *beachNameKey = "beach";
 constexpr const char *tideStationKey = "station";
@@ -67,6 +71,10 @@ void ConfigService::begin()
 
     config.wifiSsid = preferences.getString(wifiSsidKey, "");
     config.wifiPassword = preferences.getString(wifiPasswordKey, "");
+    config.wifiSsid2 = preferences.getString(wifiSsid2Key, "");
+    config.wifiPassword2 = preferences.getString(wifiPassword2Key, "");
+    config.wifiSsid3 = preferences.getString(wifiSsid3Key, "");
+    config.wifiPassword3 = preferences.getString(wifiPassword3Key, "");
     const BeachCatalog::BeachLocation &defaultBeach = BeachCatalog::defaultBeach();
     config.beachId = preferences.getString(beachIdKey, "");
     config.beachName = preferences.getString(beachNameKey, BeachCatalog::screenName(defaultBeach));
@@ -155,8 +163,13 @@ bool ConfigService::save(const DeviceConfig &newConfig)
     const bool validBrightness = newConfig.brightness >= 25 && newConfig.brightness <= 100 &&
                                  newConfig.nightBrightness >= 5 && newConfig.nightBrightness <= 100 &&
                                  newConfig.nightStartMinute < 24 * 60 && newConfig.nightEndMinute < 24 * 60;
+    const bool validAdditionalNetworks =
+        (newConfig.wifiSsid2.isEmpty() || newConfig.wifiSsid2 != newConfig.wifiSsid) &&
+        (newConfig.wifiSsid3.isEmpty() ||
+         (newConfig.wifiSsid3 != newConfig.wifiSsid && newConfig.wifiSsid3 != newConfig.wifiSsid2));
     if (!initialized || newConfig.wifiSsid.isEmpty() || newConfig.beachName.isEmpty() ||
-        (!validCatalogBeach && !validLegacyBeach) || displayStyle == nullptr || !validAlarm || !validBrightness)
+        (!validCatalogBeach && !validLegacyBeach) || displayStyle == nullptr || !validAlarm ||
+        !validBrightness || !validAdditionalNetworks)
     {
         Serial.printf("Config: validation failed (wifi=%d beach=%d catalog=%d legacy=%d display=%d alarm=%d brightness=%d)\n",
                       !newConfig.wifiSsid.isEmpty(), !newConfig.beachName.isEmpty(), validCatalogBeach,
@@ -170,6 +183,11 @@ bool ConfigService::save(const DeviceConfig &newConfig)
     const bool ssidSaved = preferences.putString(wifiSsidKey, newConfig.wifiSsid) == newConfig.wifiSsid.length();
     const bool passwordSaved =
         preferences.putString(wifiPasswordKey, newConfig.wifiPassword) == newConfig.wifiPassword.length();
+    const bool additionalNetworksSaved =
+        preferences.putString(wifiSsid2Key, newConfig.wifiSsid2) == newConfig.wifiSsid2.length() &&
+        preferences.putString(wifiPassword2Key, newConfig.wifiPassword2) == newConfig.wifiPassword2.length() &&
+        preferences.putString(wifiSsid3Key, newConfig.wifiSsid3) == newConfig.wifiSsid3.length() &&
+        preferences.putString(wifiPassword3Key, newConfig.wifiPassword3) == newConfig.wifiPassword3.length();
     const bool settingsSaved =
         preferences.putString(beachIdKey, newConfig.beachId) == newConfig.beachId.length() &&
         preferences.putString(beachNameKey, newConfig.beachName) == newConfig.beachName.length() &&
@@ -187,10 +205,11 @@ bool ConfigService::save(const DeviceConfig &newConfig)
         preferences.putUShort(nightStartKey, newConfig.nightStartMinute) == sizeof(uint16_t) &&
         preferences.putUShort(nightEndKey, newConfig.nightEndMinute) == sizeof(uint16_t);
 
-    if (!ssidSaved || !passwordSaved || !settingsSaved || !preferences.putBool(configuredKey, true))
+    if (!ssidSaved || !passwordSaved || !additionalNetworksSaved || !settingsSaved ||
+        !preferences.putBool(configuredKey, true))
     {
-        Serial.printf("Config: storage failed (ssid=%d password=%d settings=%d)\n",
-                      ssidSaved, passwordSaved, settingsSaved);
+        Serial.printf("Config: storage failed (ssid=%d password=%d additional=%d settings=%d)\n",
+                      ssidSaved, passwordSaved, additionalNetworksSaved, settingsSaved);
         configured = wasConfigured;
         return false;
     }

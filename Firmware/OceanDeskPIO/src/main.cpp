@@ -75,11 +75,10 @@ void setup()
         return;
     }
 
-    // Inicializa o relógio
-    ClockService::begin();
-
     ConfigService::begin();
     const DeviceConfig &config = ConfigService::get();
+    // Restore retained time before creating the UI or tide snapshot.
+    ClockService::begin();
     Theme::configure(config.textColor, config.backgroundColor);
     setupMode = !ConfigService::isConfigured();
 
@@ -89,7 +88,7 @@ void setup()
     }
     else
     {
-        WiFiService::beginStation(config.wifiSsid.c_str(), config.wifiPassword.c_str());
+        WiFiService::beginStation(config);
         NTPService::begin(config.timezone.c_str());
         TideService::begin();
         AlarmService::begin();

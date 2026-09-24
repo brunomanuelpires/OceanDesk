@@ -13,22 +13,66 @@ enum class WiFiMode
 
 constexpr const char *setupSsid = "OceanDesk_Setup";
 constexpr const char *setupIpAddress = "192.168.4.1";
-constexpr unsigned long reconnectInterval = 30UL * 1000UL;
-unsigned long lastReconnectAttempt = 0;
+constexpr unsigned long networkAttemptDuration = 12UL * 1000UL;
+constexpr unsigned long offlineSetupDelay = 45UL * 1000UL;
+struct KnownNetwork { String ssid; String password; };
+KnownNetwork knownNetworks[3];
+uint8_t knownNetworkCount = 0;
+uint8_t activeNetwork = 0;
+unsigned long networkAttemptStartedAt = 0;
+unsigned long disconnectedSince = 0;
 wl_status_t lastStatus = WL_NO_SHIELD;
 WiFiMode currentMode = WiFiMode::Off;
+
+void startNetwork(uint8_t index)
+{
+    activeNetwork = index;
+    networkAttemptStartedAt = millis();
+    Serial.printf("WiFi: trying saved network %u of %u\n", index + 1, knownNetworkCount);
+    WiFi.disconnect(false, false);
+    WiFi.begin(knownNetworks[index].ssid.c_str(), knownNetworks[index].password.c_str());
 }
 
-void WiFiService::beginStation(const char *ssid, const char *password)
+bool startFallbackAccessPoint()
+{
+    const IPAddress localIp(192, 168, 4, 1);
+    const IPAddress gateway(192, 168, 4, 1);
+    const IPAddress subnet(255, 255, 255, 0);
+
+    if (currentMode == WiFiMode::SetupAccessPoint) return true;
+    Serial.println("WiFi: no saved network available; opening setup network");
+    WiFi.mode(WIFI_AP_STA);
+    if (!WiFi.softAPConfig(localIp, gateway, subnet) || !WiFi.softAP(setupSsid))
+    {
+        Serial.println("WiFi: failed to start fallback setup network");
+        return false;
+    }
+    currentMode = WiFiMode::SetupAccessPoint;
+    return true;
+}
+}
+
+void WiFiService::beginStation(const DeviceConfig &config)
 {
     Serial.println("WiFi: starting connection...");
 
+    knownNetworkCount = 0;
+    const auto addNetwork = [](const String &ssid, const String &password) {
+        if (!ssid.isEmpty() && knownNetworkCount < 3)
+        {
+            knownNetworks[knownNetworkCount++] = {ssid, password};
+        }
+    };
+    addNetwork(config.wifiSsid, config.wifiPassword);
+    addNetwork(config.wifiSsid2, config.wifiPassword2);
+    addNetwork(config.wifiSsid3, config.wifiPassword3);
+
     WiFi.mode(WIFI_STA);
-    WiFi.setAutoReconnect(true);
-    WiFi.begin(ssid, password);
-    lastReconnectAttempt = millis();
+    WiFi.setAutoReconnect(false);
     lastStatus = WiFi.status();
     currentMode = WiFiMode::Station;
+    disconnectedSince = millis();
+    if (knownNetworkCount > 0) startNetwork(0);
 }
 
 bool WiFiService::beginSetupAccessPoint()
@@ -56,10 +100,12 @@ bool WiFiService::beginSetupAccessPoint()
 
 void WiFiService::update()
 {
-    if (currentMode != WiFiMode::Station)
+    if (currentMode != WiFiMode::Station && currentMode != WiFiMode::SetupAccessPoint)
     {
         return;
     }
+
+    if (currentMode == WiFiMode::SetupAccessPoint && knownNetworkCount == 0) return;
 
     const unsigned long now = millis();
     const wl_status_t currentStatus = WiFi.status();
@@ -73,6 +119,14 @@ void WiFiService::update()
             Serial.println("WiFi: connected");
             Serial.print("WiFi IP: ");
             Serial.println(WiFi.localIP());
+            disconnectedSince = 0;
+            if (currentMode == WiFiMode::SetupAccessPoint)
+            {
+                WiFi.softAPdisconnect(true);
+                WiFi.mode(WIFI_STA);
+                currentMode = WiFiMode::Station;
+                Serial.println("WiFi: setup network closed");
+            }
         }
         else
         {
@@ -81,18 +135,28 @@ void WiFiService::update()
         }
     }
 
-    if (currentStatus != WL_CONNECTED &&
-        now - lastReconnectAttempt >= reconnectInterval)
+    if (currentStatus != WL_CONNECTED)
     {
-        lastReconnectAttempt = now;
-        Serial.println("WiFi: requesting reconnection...");
-        WiFi.reconnect();
+        if (disconnectedSince == 0) disconnectedSince = now;
+        if (knownNetworkCount > 0 && now - networkAttemptStartedAt >= networkAttemptDuration)
+        {
+            startNetwork((activeNetwork + 1) % knownNetworkCount);
+        }
+        if (now - disconnectedSince >= offlineSetupDelay)
+        {
+            startFallbackAccessPoint();
+        }
     }
 }
 
 bool WiFiService::isConnected()
 {
     return currentMode == WiFiMode::Station && WiFi.status() == WL_CONNECTED;
+}
+
+bool WiFiService::isOffline()
+{
+    return !isConnected();
 }
 
 bool WiFiService::isSetupMode()

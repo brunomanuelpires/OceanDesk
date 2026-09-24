@@ -14,6 +14,10 @@ struct DeviceConfig
 {
     String wifiSsid;
     String wifiPassword;
+    String wifiSsid2;
+    String wifiPassword2;
+    String wifiSsid3;
+    String wifiPassword3;
     String beachId;
     String beachName;
     String tideStation;
