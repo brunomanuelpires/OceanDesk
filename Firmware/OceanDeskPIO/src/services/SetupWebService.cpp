@@ -30,19 +30,36 @@ String colorValue(uint32_t color)
     return String(value);
 }
 
-bool updateAdditionalNetwork(const String &submittedSsid, const String &submittedPassword,
-                             String &storedSsid, String &storedPassword)
+bool saveSetupNetwork(DeviceConfig &config, const String &ssid, const String &password)
 {
-    if (submittedSsid.isEmpty())
+    if (ssid == config.wifiSsid)
     {
-        storedSsid = "";
-        storedPassword = "";
+        config.wifiPassword = password;
         return true;
     }
-    if (submittedSsid != storedSsid && submittedPassword.isEmpty()) return false;
-    storedSsid = submittedSsid;
-    if (!submittedPassword.isEmpty()) storedPassword = submittedPassword;
-    return true;
+    if (ssid == config.wifiSsid2)
+    {
+        config.wifiPassword2 = password;
+        return true;
+    }
+    if (ssid == config.wifiSsid3)
+    {
+        config.wifiPassword3 = password;
+        return true;
+    }
+    if (config.wifiSsid2.isEmpty())
+    {
+        config.wifiSsid2 = ssid;
+        config.wifiPassword2 = password;
+        return true;
+    }
+    if (config.wifiSsid3.isEmpty())
+    {
+        config.wifiSsid3 = ssid;
+        config.wifiPassword3 = password;
+        return true;
+    }
+    return false;
 }
 
 String tideModelLabel(const String &modelId)
@@ -91,6 +108,7 @@ void appendBeachOptions(String &page, const DeviceConfig &config)
 String buildPage()
 {
     const DeviceConfig &config = ConfigService::get();
+    const bool addingNetwork = ConfigService::isConfigured() && WiFiService::isSetupMode();
     char alarmTime[6];
     char nightStart[6];
     char nightEnd[6];
@@ -98,22 +116,24 @@ String buildPage()
     formatTimeOfDay(config.nightStartMinute, nightStart, sizeof(nightStart));
     formatTimeOfDay(config.nightEndMinute, nightEnd, sizeof(nightEnd));
     String page = R"HTML(<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OceanDesk</title><style>
-:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1620;color:#fff}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}main{width:min(100%,520px);background:#132430;border:1px solid #20313e;border-radius:22px;padding:30px;box-sizing:border-box}h1{margin:0 0 8px;font-size:30px}p,.hint{color:#a9bfcc;line-height:1.5}.notice{background:#143d36;border:1px solid #38c172;color:#dff8ec;padding:12px 14px;border-radius:12px;margin:16px 0;transition:opacity .25s ease}.details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding:13px;border-radius:12px;background:#0b1620;color:#a9bfcc;font-size:13px}.details strong{display:block;color:#fff;margin-top:3px}label{display:block;margin:18px 0 7px;font-weight:650}input,select{width:100%;box-sizing:border-box;border:1px solid #355063;border-radius:12px;background:#0b1620;color:#fff;padding:13px;font-size:16px}input[type=time]{width:100%;max-width:100%;min-width:0;height:52px;min-height:52px;padding:0;line-height:52px}input[type=color]{height:52px;padding:4px;background:transparent}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.alarm-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%}.alarm-fields label{min-width:0;margin:0;font-weight:400}.alarm-fields input,.alarm-fields select{display:block;margin-top:7px}.hint{font-size:13px;margin-top:7px}button{width:100%;margin-top:24px;border:0;border-radius:12px;background:#55c9f3;color:#08202b;padding:14px;font-size:16px;font-weight:750}</style></head><body><main><h1>OceanDesk</h1><p>Configura a localização e o aspeto do teu OceanDesk.</p>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1620;color:#fff}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}main{width:min(100%,520px);background:#132430;border:1px solid #20313e;border-radius:22px;padding:30px;box-sizing:border-box}h1{margin:0 0 8px;font-size:30px}p,.hint{color:#a9bfcc;line-height:1.5}.notice{background:#143d36;border:1px solid #38c172;color:#dff8ec;padding:12px 14px;border-radius:12px;margin:16px 0;transition:opacity .25s ease}.details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding:13px;border-radius:12px;background:#0b1620;color:#a9bfcc;font-size:13px}.details strong{display:block;color:#fff;margin-top:3px}label{display:block;margin:18px 0 7px;font-weight:650}input,select{width:100%;box-sizing:border-box;border:1px solid #355063;border-radius:12px;background:#0b1620;color:#fff;padding:13px;font-size:16px}input[type=time]{width:100%;max-width:100%;min-width:0;height:52px;min-height:52px;padding:0;line-height:52px}input[type=color]{height:52px;padding:4px;background:transparent}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.alarm-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%}.alarm-fields label{min-width:0;margin:0;font-weight:400}.alarm-fields input,.alarm-fields select{display:block;margin-top:7px}.hint{font-size:13px;margin-top:7px}button{width:100%;margin-top:24px;border:0;border-radius:12px;background:#55c9f3;color:#08202b;padding:14px;font-size:16px;font-weight:750}</style></head><body><main><h1>OceanDesk</h1><p>)HTML";
+    page += addingNetwork ? "Liga o OceanDesk a uma rede Wi-Fi disponível." : "Configura a localização e o aspeto do teu OceanDesk.";
+    page += R"HTML(</p>
 )HTML";
     if (server.hasArg("saved"))
     {
         page += R"HTML(<div class="notice" id="saved-notice">As alterações foram enviadas para o OceanDesk.</div>)HTML";
     }
     page += R"HTML(<form method="post" action="/configure">)HTML";
-    if (!ConfigService::isConfigured())
+    if (!ConfigService::isConfigured() || addingNetwork)
     {
         page += R"HTML(<label>Nome da rede Wi-Fi</label><input name="ssid" maxlength="32" required><label>Palavra-passe</label><input name="password" type="password" maxlength="63">)HTML";
     }
-    page += R"HTML(<label>Redes Wi-Fi adicionais</label><div class="hint">Guarda até duas redes adicionais. O OceanDesk tenta automaticamente as redes guardadas disponíveis. Deixa o nome vazio para remover essa rede.</div><div class="alarm-fields"><label>Rede adicional 1<input name="wifi_ssid_2" maxlength="32" value=")HTML";
-    page += escapeHtml(config.wifiSsid2);
-    page += R"HTML("></label><label>Palavra-passe<input name="wifi_password_2" type="password" maxlength="63" placeholder="Mantém a existente se vazio"></label><label>Rede adicional 2<input name="wifi_ssid_3" maxlength="32" value=")HTML";
-    page += escapeHtml(config.wifiSsid3);
-    page += R"HTML("></label><label>Palavra-passe<input name="wifi_password_3" type="password" maxlength="63" placeholder="Mantém a existente se vazio"></label></div>)HTML";
+    if (addingNetwork)
+    {
+        page += R"HTML(<div class="hint">O OceanDesk guarda esta rede e liga-se automaticamente sempre que ela estiver disponível.</div><button type="submit">Guardar e ligar</button></form></main></body></html>)HTML";
+        return page;
+    }
     page += R"HTML(<label>Praia ou localização</label><select id="beach_id" name="beach_id" required>)HTML";
     appendBeachOptions(page, config);
     page += R"HTML(</select><div class="hint">Escolhe a praia; o OceanDesk atribui automaticamente o modelo de maré e o fuso horário.</div><div class="details"><div>Modelo de maré<strong id="tide_model">—</strong></div><div>Fuso horário<strong id="location_timezone">—</strong></div></div>
@@ -183,21 +203,33 @@ bool parseAlarmTime(const String &value, uint8_t &hour, uint8_t &minute)
 void handleConfigure()
 {
     DeviceConfig config = ConfigService::get();
+    const bool addingNetwork = ConfigService::isConfigured() && WiFiService::isSetupMode();
     String ssid = server.arg("ssid"); ssid.trim();
     String beachId = server.hasArg("beach_id") ? server.arg("beach_id") : config.beachId;
     beachId.trim();
     if (beachId.isEmpty() && config.beachId.isEmpty()) beachId = "__legacy__";
-    if ((!ConfigService::isConfigured() && ssid.isEmpty())) { server.send(400, "text/plain; charset=utf-8", "Preenche os campos obrigatórios."); return; }
-    if (!ConfigService::isConfigured()) { config.wifiSsid = ssid; config.wifiPassword = server.arg("password"); }
-    String wifiSsid2 = server.hasArg("wifi_ssid_2") ? server.arg("wifi_ssid_2") : config.wifiSsid2;
-    String wifiPassword2 = server.hasArg("wifi_password_2") ? server.arg("wifi_password_2") : "";
-    String wifiSsid3 = server.hasArg("wifi_ssid_3") ? server.arg("wifi_ssid_3") : config.wifiSsid3;
-    String wifiPassword3 = server.hasArg("wifi_password_3") ? server.arg("wifi_password_3") : "";
-    wifiSsid2.trim();
-    wifiSsid3.trim();
-    if (!updateAdditionalNetwork(wifiSsid2, wifiPassword2, config.wifiSsid2, config.wifiPassword2) ||
-        !updateAdditionalNetwork(wifiSsid3, wifiPassword3, config.wifiSsid3, config.wifiPassword3))
-    { server.send(400, "text/plain; charset=utf-8", "Indica a palavra-passe ao adicionar uma rede Wi-Fi."); return; }
+    if ((!ConfigService::isConfigured() || addingNetwork) && ssid.isEmpty())
+    { server.send(400, "text/plain; charset=utf-8", "Indica o nome da rede Wi-Fi."); return; }
+    if (!ConfigService::isConfigured())
+    {
+        config.wifiSsid = ssid;
+        config.wifiPassword = server.arg("password");
+    }
+    else if (addingNetwork && !saveSetupNetwork(config, ssid, server.arg("password")))
+    {
+        server.send(400, "text/plain; charset=utf-8", "O OceanDesk já tem três redes Wi-Fi guardadas.");
+        return;
+    }
+    if (addingNetwork)
+    {
+        if (!ConfigService::save(config))
+        { server.send(400, "text/plain; charset=utf-8", "Não foi possível guardar a rede Wi-Fi."); return; }
+        AlarmService::suspendUntilRestart();
+        server.sendHeader("Location", "/?saved=1");
+        server.send(303);
+        restartAt = millis() + 1200;
+        return;
+    }
     if (beachId == "__legacy__" && !ConfigService::isConfigured())
     {
         // A new device has no legacy location. Use the catalog default unless
