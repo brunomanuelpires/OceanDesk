@@ -20,10 +20,16 @@ constexpr unsigned long stylePersistenceDelayMs = 750;
 
 DisplayStyle adjacentStyle(DisplayStyle current, int direction)
 {
-    const int count = 4;
-    int index = static_cast<int>(current);
-    index = (index + direction + count) % count;
-    return static_cast<DisplayStyle>(index);
+    if (direction > 0)
+    {
+        if (current == DisplayStyle::Classic) return DisplayStyle::Graph;
+        if (current == DisplayStyle::Graph) return DisplayStyle::Info;
+        return DisplayStyle::Classic;
+    }
+
+    if (current == DisplayStyle::Classic) return DisplayStyle::Info;
+    if (current == DisplayStyle::Info) return DisplayStyle::Graph;
+    return DisplayStyle::Classic;
 }
 
 lv_point_t touchStart;

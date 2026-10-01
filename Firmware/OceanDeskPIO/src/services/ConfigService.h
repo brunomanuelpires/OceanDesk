@@ -5,7 +5,6 @@
 enum class DisplayStyle
 {
     Classic,
-    Minimal,
     Graph,
     Info
 };
@@ -22,8 +21,12 @@ struct DeviceConfig
     String beachName;
     String tideStation;
     String timezone;
-    uint32_t textColor;
-    uint32_t backgroundColor;
+    // `textColor` is the original persisted text colour. It remains the
+    // primary role so existing devices retain their selected appearance.
+    uint32_t textColor = 0xFFFFFF;
+    uint32_t secondaryTextColor = 0xB6C7D1;
+    uint32_t tertiaryTextColor = 0x8196A4;
+    uint32_t backgroundColor = 0x0B1620;
     DisplayStyle displayStyle = DisplayStyle::Classic;
     bool alarmEnabled = false;
     uint8_t alarmHour = 7;

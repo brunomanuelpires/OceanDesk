@@ -16,7 +16,10 @@ namespace Theme
 
     // Text
     extern uint32_t Text;
-    static constexpr uint32_t TextMuted    = 0x8EA6B5;
+    extern uint32_t TextSecondary;
+    extern uint32_t TextTertiary;
+    // Existing setup UI colour; it remains unchanged outside Minimal.
+    static constexpr uint32_t TextMuted = 0x8EA6B5;
 
     // Brand
     static constexpr uint32_t Accent       = 0x55C9F3;
@@ -41,6 +44,11 @@ namespace Theme
     extern const lv_font_t *FontLarge;
     extern const lv_font_t *FontXL;
     extern const lv_font_t *FontTime;
+    extern const lv_font_t *FontClock;
+    extern const lv_font_t *FontHeight;
+    extern const lv_font_t *FontSmallStrong;
+    extern const lv_font_t *FontMediumStrong;
+    extern const lv_font_t *FontLargeStrong;
 
 
     //=========================================================
@@ -52,5 +60,12 @@ namespace Theme
         return lv_color_hex(hex);
     }
 
-    void configure(uint32_t textColor, uint32_t backgroundColor);
+    // Solid is the only implemented background. Keeping the source explicit
+    // lets a future image-backed background be introduced without changing
+    // screen layout code or the colour-role API.
+    enum class BackgroundSource { Solid /* Image: future */ };
+
+    void configure(uint32_t primaryTextColor, uint32_t secondaryTextColor,
+                   uint32_t tertiaryTextColor, uint32_t backgroundColor,
+                   BackgroundSource backgroundSource = BackgroundSource::Solid);
 }

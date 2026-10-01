@@ -116,7 +116,7 @@ String buildPage()
     formatTimeOfDay(config.nightStartMinute, nightStart, sizeof(nightStart));
     formatTimeOfDay(config.nightEndMinute, nightEnd, sizeof(nightEnd));
     String page = R"HTML(<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OceanDesk</title><style>
-:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1620;color:#fff}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}main{width:min(100%,520px);background:#132430;border:1px solid #20313e;border-radius:22px;padding:30px;box-sizing:border-box}h1{margin:0 0 8px;font-size:30px}p,.hint{color:#a9bfcc;line-height:1.5}.notice{background:#143d36;border:1px solid #38c172;color:#dff8ec;padding:12px 14px;border-radius:12px;margin:16px 0;transition:opacity .25s ease}.details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding:13px;border-radius:12px;background:#0b1620;color:#a9bfcc;font-size:13px}.details strong{display:block;color:#fff;margin-top:3px}label{display:block;margin:18px 0 7px;font-weight:650}input,select{width:100%;box-sizing:border-box;border:1px solid #355063;border-radius:12px;background:#0b1620;color:#fff;padding:13px;font-size:16px}input[type=time]{width:100%;max-width:100%;min-width:0;height:52px;min-height:52px;padding:0;line-height:52px}input[type=color]{height:52px;padding:4px;background:transparent}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.alarm-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%}.alarm-fields label{min-width:0;margin:0;font-weight:400}.alarm-fields input,.alarm-fields select{display:block;margin-top:7px}.hint{font-size:13px;margin-top:7px}button{width:100%;margin-top:24px;border:0;border-radius:12px;background:#55c9f3;color:#08202b;padding:14px;font-size:16px;font-weight:750}</style></head><body><main><h1>OceanDesk</h1><p>)HTML";
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1620;color:#fff}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}main{width:min(100%,520px);background:#132430;border:1px solid #20313e;border-radius:22px;padding:30px;box-sizing:border-box}h1{margin:0 0 8px;font-size:30px}p,.hint{color:#a9bfcc;line-height:1.5}.notice{background:#143d36;border:1px solid #38c172;color:#dff8ec;padding:12px 14px;border-radius:12px;margin:16px 0;transition:opacity .25s ease}.details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding:13px;border-radius:12px;background:#0b1620;color:#a9bfcc;font-size:13px}.details strong{display:block;color:#fff;margin-top:3px}label{display:block;margin:18px 0 7px;font-weight:650}input,select{width:100%;box-sizing:border-box;border:1px solid #355063;border-radius:12px;background:#0b1620;color:#fff;padding:13px;font-size:16px}input[type=time]{width:100%;max-width:100%;min-width:0;height:52px;min-height:52px;padding:0;line-height:52px}input[type=color]{height:52px;padding:4px;background:transparent}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.color-roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.color-roles label{margin:0;font-size:13px}.color-roles input{margin-top:7px}.alarm-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%}.alarm-fields label{min-width:0;margin:0;font-weight:400}.alarm-fields input,.alarm-fields select{display:block;margin-top:7px}.hint{font-size:13px;margin-top:7px}button{width:100%;margin-top:24px;border:0;border-radius:12px;background:#55c9f3;color:#08202b;padding:14px;font-size:16px;font-weight:750}</style></head><body><main><h1>OceanDesk</h1><p>)HTML";
     page += addingNetwork ? "Liga o OceanDesk a uma rede Wi-Fi disponível." : "Configura a localização e o aspeto do teu OceanDesk.";
     page += R"HTML(</p>
 )HTML";
@@ -137,7 +137,7 @@ String buildPage()
     page += R"HTML(<label>Praia ou localização</label><select id="beach_id" name="beach_id" required>)HTML";
     appendBeachOptions(page, config);
     page += R"HTML(</select><div class="hint">Escolhe a praia; o OceanDesk atribui automaticamente o modelo de maré e o fuso horário.</div><div class="details"><div>Modelo de maré<strong id="tide_model">—</strong></div><div>Fuso horário<strong id="location_timezone">—</strong></div></div>
-<label>Estilo do ecrã</label><select name="display_style"><option value="classic">Classic — equilibrado</option><option value="minimal">Minimal — estado e próximo evento</option><option value="graph">Graph — gráfico em destaque</option><option value="info">Info — mais dados</option></select><div class="hint">O OceanDesk aplica o novo layout depois de reiniciar.</div>
+<label>Estilo do ecrã</label><select name="display_style"><option value="classic">Classic — relógio e marés</option><option value="graph">Graph — gráfico em destaque</option><option value="info">Info — mais dados</option></select><div class="hint">O OceanDesk aplica o novo layout depois de reiniciar.</div>
 <label>Alarme diário</label><div class="alarm-fields"><label>Hora<input name="alarm_time" type="time" value=")HTML";
     page += alarmTime;
     page += R"HTML(" required></label><label>Estado<select name="alarm_enabled"><option value="0")HTML";
@@ -170,8 +170,8 @@ String buildPage()
     page += R"HTML(>35% — moderado</option><option value="50")HTML";
     if (config.nightBrightness == 50) page += " selected";
     page += R"HTML(>50% — alto</option></select><div class="hint">À noite o OceanDesk reduz visualmente a luminosidade. O controlo físico desta placa é apenas ligado/desligado.</div>
-<label>Cores</label><div class="row"><div>Texto<input name="text_color" type="color" value=")HTML";
-    page += colorValue(config.textColor) + "\"></div><div>Fundo<input name=\"background_color\" type=\"color\" value=\"" + colorValue(config.backgroundColor) + "\"></div></div>";
+<label>Cores de texto</label><div class="color-roles"><label>Principal<input name="text_primary" type="color" value=")HTML";
+    page += colorValue(config.textColor) + "\"></label><label>Secundário<input name=\"text_secondary\" type=\"color\" value=\"" + colorValue(config.secondaryTextColor) + "\"></label><label>Terciário<input name=\"text_tertiary\" type=\"color\" value=\"" + colorValue(config.tertiaryTextColor) + "\"></label></div><div class=\"hint\">Principal: hora, altura e horas dos eventos. Secundário: estado, eventos e localização. Terciário: data, ZH e etiquetas.</div><label>Cor de fundo</label><input name=\"background_color\" type=\"color\" value=\"" + colorValue(config.backgroundColor) + "\">";
     page += R"HTML(<button type="submit">Guardar alterações</button></form></main><script>document.querySelector('[name=display_style]').value=")HTML";
     page += ConfigService::displayStyleName(config.displayStyle);
     page += R"HTML(";const beach=document.getElementById('beach_id');function syncLocation(){const option=beach.selectedOptions[0];document.getElementById('tide_model').textContent=option?.dataset.station||'—';document.getElementById('location_timezone').textContent=option?.dataset.timezone||'—'}beach.addEventListener('change',syncLocation);syncLocation();const notice=document.getElementById('saved-notice');if(notice){setTimeout(()=>{notice.style.opacity='0';setTimeout(()=>notice.remove(),250)},4000)}if(location.search)history.replaceState({},'',location.pathname);</script></body></html>)HTML";
@@ -276,9 +276,15 @@ void handleConfigure()
     config.nightBrightness = static_cast<uint8_t>(nightBrightness.toInt());
     config.nightStartMinute = nightStartHour * 60U + nightStartMinute;
     config.nightEndMinute = nightEndHour * 60U + nightEndMinute;
-    const String textColor = server.hasArg("text_color") ? server.arg("text_color") : colorValue(config.textColor);
+    // Accept `text_color` too, so older scripted clients keep setting primary.
+    const String textColor = server.hasArg("text_primary") ? server.arg("text_primary") :
+                             (server.hasArg("text_color") ? server.arg("text_color") : colorValue(config.textColor));
+    const String secondaryTextColor = server.hasArg("text_secondary") ? server.arg("text_secondary") : colorValue(config.secondaryTextColor);
+    const String tertiaryTextColor = server.hasArg("text_tertiary") ? server.arg("text_tertiary") : colorValue(config.tertiaryTextColor);
     const String backgroundColor = server.hasArg("background_color") ? server.arg("background_color") : colorValue(config.backgroundColor);
     if (!parseColor(textColor, config.textColor) ||
+        !parseColor(secondaryTextColor, config.secondaryTextColor) ||
+        !parseColor(tertiaryTextColor, config.tertiaryTextColor) ||
         !parseColor(backgroundColor, config.backgroundColor) || !ConfigService::save(config))
     { server.send(400, "text/plain; charset=utf-8", "Configuração inválida."); return; }
     AlarmService::suspendUntilRestart();

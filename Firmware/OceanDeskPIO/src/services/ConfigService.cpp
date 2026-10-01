@@ -18,6 +18,9 @@ constexpr const char *beachNameKey = "beach";
 constexpr const char *tideStationKey = "station";
 constexpr const char *timezoneKey = "timezone";
 constexpr const char *textColorKey = "text_color";
+// Keep all keys under ESP32 NVS's 15-character limit.
+constexpr const char *secondaryTextColorKey = "text_second";
+constexpr const char *tertiaryTextColorKey = "text_third";
 constexpr const char *backgroundColorKey = "bg_color";
 constexpr const char *displayStyleKey = "display";
 constexpr const char *alarmEnabledKey = "alarm_enabled";
@@ -33,6 +36,8 @@ constexpr const char *nightBrightnessKey = "night_bright";
 constexpr const char *nightStartKey = "night_start";
 constexpr const char *nightEndKey = "night_end";
 constexpr DisplayStyle defaultDisplayStyle = DisplayStyle::Classic;
+constexpr uint32_t defaultSecondaryTextColor = 0xB6C7D1;
+constexpr uint32_t defaultTertiaryTextColor = 0x8196A4;
 
 Preferences preferences;
 DeviceConfig config;
@@ -81,6 +86,11 @@ void ConfigService::begin()
     config.tideStation = preferences.getString(tideStationKey, defaultBeach.tideModelId);
     config.timezone = preferences.getString(timezoneKey, defaultBeach.timezone);
     config.textColor = preferences.getULong(textColorKey, 0xFFFFFF);
+    // Missing role keys identify configurations saved before colour roles
+    // existed. Preserve their text colour as primary and use legible defaults
+    // for the new roles without requiring a one-time migration write.
+    config.secondaryTextColor = preferences.getULong(secondaryTextColorKey, defaultSecondaryTextColor);
+    config.tertiaryTextColor = preferences.getULong(tertiaryTextColorKey, defaultTertiaryTextColor);
     config.backgroundColor = preferences.getULong(backgroundColorKey, 0x0B1620);
     config.alarmEnabled = preferences.getBool(alarmEnabledKey, false);
     config.alarmHour = preferences.getUChar(alarmHourKey, 7);
@@ -194,6 +204,8 @@ bool ConfigService::save(const DeviceConfig &newConfig)
         preferences.putString(tideStationKey, newConfig.tideStation) == newConfig.tideStation.length() &&
         preferences.putString(timezoneKey, newConfig.timezone) == newConfig.timezone.length() &&
         preferences.putULong(textColorKey, newConfig.textColor) == sizeof(uint32_t) &&
+        preferences.putULong(secondaryTextColorKey, newConfig.secondaryTextColor) == sizeof(uint32_t) &&
+        preferences.putULong(tertiaryTextColorKey, newConfig.tertiaryTextColor) == sizeof(uint32_t) &&
         preferences.putULong(backgroundColorKey, newConfig.backgroundColor) == sizeof(uint32_t) &&
         preferences.putString(displayStyleKey, displayStyle) == strlen(displayStyle) &&
         preferences.putBool(alarmEnabledKey, newConfig.alarmEnabled) == sizeof(bool) &&
@@ -254,7 +266,6 @@ const char *ConfigService::displayStyleName(DisplayStyle style)
     switch (style)
     {
     case DisplayStyle::Classic: return "classic";
-    case DisplayStyle::Minimal: return "minimal";
     case DisplayStyle::Graph: return "graph";
     case DisplayStyle::Info: return "info";
     }
@@ -264,8 +275,7 @@ const char *ConfigService::displayStyleName(DisplayStyle style)
 
 bool ConfigService::parseDisplayStyle(const String &value, DisplayStyle &style)
 {
-    if (value == "classic") style = DisplayStyle::Classic;
-    else if (value == "minimal") style = DisplayStyle::Minimal;
+    if (value == "classic" || value == "minimal") style = DisplayStyle::Classic;
     else if (value == "graph") style = DisplayStyle::Graph;
     else if (value == "info") style = DisplayStyle::Info;
     else return false;

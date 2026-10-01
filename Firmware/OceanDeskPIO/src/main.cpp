@@ -79,7 +79,8 @@ void setup()
     const DeviceConfig &config = ConfigService::get();
     // Restore retained time before creating the UI or tide snapshot.
     ClockService::begin();
-    Theme::configure(config.textColor, config.backgroundColor);
+    Theme::configure(config.textColor, config.secondaryTextColor,
+                     config.tertiaryTextColor, config.backgroundColor);
     setupMode = !ConfigService::isConfigured();
 
     if (setupMode)
