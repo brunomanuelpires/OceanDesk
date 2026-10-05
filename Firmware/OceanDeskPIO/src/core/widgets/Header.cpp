@@ -7,7 +7,6 @@
 lv_obj_t *Header::timeLabel = nullptr;
 lv_obj_t *Header::dateLabel = nullptr;
 lv_obj_t *Header::networkLabel = nullptr;
-namespace { lv_timer_t *updateTimer = nullptr; }
 
 void Header::create(lv_obj_t *parent)
 {
@@ -89,8 +88,6 @@ void Header::create(lv_obj_t *parent)
     // Preenche logo os valores
     refresh();
 
-    // Atualiza o Header a cada segundo
-    if (updateTimer == nullptr) updateTimer = lv_timer_create(timerCallback, 1000, nullptr);
 }
 
 void Header::clear()
@@ -127,11 +124,4 @@ void Header::refresh()
     lv_obj_align(timeLabel, LV_ALIGN_TOP_MID, 0, 48);
     lv_obj_align(dateLabel, LV_ALIGN_TOP_MID, 0, 158);
     lv_label_set_text(networkLabel, WiFiService::isOffline() ? "Sem Wi-Fi" : "");
-}
-
-void Header::timerCallback(lv_timer_t *timer)
-{
-    (void)timer;
-
-    refresh();
 }

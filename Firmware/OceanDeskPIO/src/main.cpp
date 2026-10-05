@@ -52,7 +52,7 @@ void setup()
 
     if (lcd_bus->getBasicAttributes().type == ESP_PANEL_BUS_TYPE_RGB) {
         static_cast<BusRGB *>(lcd_bus)->configRGB_BounceBufferSize(
-            lcd->getFrameWidth() * 10
+            lcd->getFrameWidth() * OCEANDESK_RGB_BOUNCE_LINES
         );
     }
 #endif

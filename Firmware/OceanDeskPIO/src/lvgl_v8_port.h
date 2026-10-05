@@ -41,6 +41,10 @@
 #define LVGL_PORT_BUFFER_SIZE_HEIGHT            (20)
 #define LVGL_PORT_BUFFER_NUM                    (2)
 
+// Espressif's documented next step for ESP32-S3 RGB drift is 20 scan lines.
+// This absorbs PSRAM bandwidth contention during full LVGL redraws.
+#define OCEANDESK_RGB_BOUNCE_LINES               (20)
+
 /**
  * LVGL timer handle task related parameters, can be adjusted by users
  */

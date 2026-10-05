@@ -14,5 +14,4 @@ private:
     static lv_obj_t *dateLabel;
     static lv_obj_t *networkLabel;
 
-    static void timerCallback(lv_timer_t *timer);
 };
