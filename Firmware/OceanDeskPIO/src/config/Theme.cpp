@@ -16,6 +16,9 @@ namespace Theme
     const lv_font_t *FontSmallStrong = &montserrat_18_bold;
     const lv_font_t *FontMediumStrong = &montserrat_20_medium;
     const lv_font_t *FontLargeStrong = &montserrat_30_medium;
+    const lv_font_t *FontHeaderLocation = &montserrat_44_medium;
+    const lv_font_t *FontHeaderBrand = &montserrat_24_medium;
+    const lv_font_t *FontHeaderDate = &montserrat_21_medium;
 
     void configure(uint32_t primaryTextColor, uint32_t secondaryTextColor,
                    uint32_t tertiaryTextColor, uint32_t backgroundColor,

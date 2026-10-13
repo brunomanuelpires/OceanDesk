@@ -49,6 +49,9 @@ namespace Theme
     extern const lv_font_t *FontSmallStrong;
     extern const lv_font_t *FontMediumStrong;
     extern const lv_font_t *FontLargeStrong;
+    extern const lv_font_t *FontHeaderLocation;
+    extern const lv_font_t *FontHeaderBrand;
+    extern const lv_font_t *FontHeaderDate;
 
 
     //=========================================================

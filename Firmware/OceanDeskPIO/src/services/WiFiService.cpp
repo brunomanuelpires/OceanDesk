@@ -164,6 +164,14 @@ bool WiFiService::isSetupMode()
     return currentMode == WiFiMode::SetupAccessPoint;
 }
 
+const char *WiFiService::statusLabel()
+{
+    if (isConnected()) return "Ligado";
+    if (isSetupMode()) return "Configuração";
+    if (currentMode == WiFiMode::Station) return "A procurar rede";
+    return "Desligado";
+}
+
 const char *WiFiService::setupNetworkName()
 {
     return setupSsid;

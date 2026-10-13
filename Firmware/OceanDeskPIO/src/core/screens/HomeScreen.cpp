@@ -143,6 +143,14 @@ void HomeScreen::update()
     BrightnessService::update();
 }
 
+void HomeScreen::refreshClock()
+{
+    if (activeLayout != nullptr)
+    {
+        activeLayout->refreshClock();
+    }
+}
+
 void HomeScreen::refresh()
 {
     if (AlarmService::isRinging())

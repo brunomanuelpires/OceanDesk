@@ -2,26 +2,36 @@
 #include "screens/HomeScreen.h"
 #include "../services/BrightnessService.h"
 #include "ScreenManager.h"
+#include <time.h>
 
 void EventDispatcher::begin()
 {
     // Reservado para inicialização futura do sistema de eventos.
 }
 
-void EventDispatcher::refresh()
+void EventDispatcher::refresh(bool tideSnapshotChanged)
 {
     if (ScreenManager::isHomeVisible())
     {
-        // The displayed clock has minute precision and tide predictions only
-        // change materially over minutes. Redrawing the complete home view on
-        // every service tick caused a periodic full visual workload on the RGB
-        // pipeline, despite most labels retaining identical text.
-        static unsigned long lastVisualRefresh = 0;
-        const unsigned long now = millis();
-        if (lastVisualRefresh == 0 || now - lastVisualRefresh >= 60UL * 1000UL)
+        // RTC and NTP both update the system clock. A minute change should
+        // touch only the two header labels; redrawing the tide view here
+        // invalidates a large RGB area and can disturb the display pipeline.
+        static time_t displayedMinute = -1;
+        const time_t currentMinute = time(nullptr) / 60;
+        const bool minuteChanged = currentMinute != displayedMinute;
+        displayedMinute = currentMinute;
+
+        // Tide calculations and the graph/events are refreshed only after a
+        // new snapshot has actually been produced (currently every 15 min).
+        // A full tide refresh also updates the header, so do not redraw it
+        // twice when it happens exactly on a minute boundary.
+        if (tideSnapshotChanged)
         {
-            lastVisualRefresh = now;
             HomeScreen::refresh();
+        }
+        else if (minuteChanged)
+        {
+            HomeScreen::refreshClock();
         }
         HomeScreen::update();
     }

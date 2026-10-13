@@ -5,5 +5,6 @@ class HomeScreen
 public:
     static void create();
     static void refresh();
+    static void refreshClock();
     static void update();
 };

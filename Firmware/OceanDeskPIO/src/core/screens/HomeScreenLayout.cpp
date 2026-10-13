@@ -505,19 +505,23 @@ private:
     lv_obj_t *date = nullptr;
 };
 
-class ModernHeader
+class HomeHeader
 {
 public:
     void create(lv_obj_t *screen)
     {
-        createLabel(screen, ConfigService::get().beachName.c_str(), Theme::FontMediumStrong,
-                    Theme::color(Theme::TextSecondary), LV_ALIGN_TOP_RIGHT, -52, 41);
-        createLabel(screen, "OCEANDESK", Theme::FontSmallStrong, Theme::color(Theme::TextTertiary),
-                    LV_ALIGN_TOP_RIGHT, -52, 76);
-        date = createLabel(screen, "", Theme::FontMedium, Theme::color(Theme::TextTertiary),
-                           LV_ALIGN_TOP_LEFT, 54, 114);
+        // The two top blocks are deliberately centred on their own halves:
+        // time/date on the left and location/product on the right.
+        constexpr lv_coord_t leftCenterX = -284;
+        constexpr lv_coord_t rightCenterX = 256;
+        location = createLabel(screen, ConfigService::get().beachName.c_str(), Theme::FontHeaderLocation,
+                               Theme::color(Theme::TextSecondary), LV_ALIGN_TOP_MID, rightCenterX, 28);
+        createLabel(screen, "OCEANDESK", Theme::FontHeaderBrand, Theme::color(Theme::TextTertiary),
+                    LV_ALIGN_TOP_MID, rightCenterX, 82);
+        date = createLabel(screen, "", Theme::FontHeaderDate, Theme::color(Theme::TextTertiary),
+                           LV_ALIGN_TOP_MID, leftCenterX, 122);
         clock = createLabel(screen, "", Theme::FontClock, Theme::color(Theme::Text),
-                            LV_ALIGN_TOP_LEFT, 54, 14);
+                            LV_ALIGN_TOP_MID, leftCenterX, 14);
     }
 
     void refresh()
@@ -525,11 +529,15 @@ public:
         lv_label_set_text(clock, ClockService::getTime().c_str());
         const String dateText = ClockService::getWeekday() + ", " + ClockService::getDate();
         lv_label_set_text(date, dateText.c_str());
+        lv_obj_align(location, LV_ALIGN_TOP_MID, 256, 28);
+        lv_obj_align(clock, LV_ALIGN_TOP_MID, -284, 14);
+        lv_obj_align(date, LV_ALIGN_TOP_MID, -284, 122);
     }
 
 private:
     lv_obj_t *date = nullptr;
     lv_obj_t *clock = nullptr;
+    lv_obj_t *location = nullptr;
 };
 
 void createFooterDivider(lv_obj_t *screen)
@@ -547,16 +555,7 @@ class ClassicLayout final : public HomeScreenLayout
 public:
     void create(lv_obj_t *screen) override
     {
-        // Classic is deliberately self-contained: changing it must not alter
-        // the shared header used by Graph and Info.
-        createLabel(screen, ConfigService::get().beachName.c_str(), Theme::FontMediumStrong,
-                    Theme::color(Theme::TextSecondary), LV_ALIGN_TOP_RIGHT, -52, 41);
-        createLabel(screen, "OCEANDESK", Theme::FontSmallStrong, Theme::color(Theme::TextTertiary),
-                    LV_ALIGN_TOP_RIGHT, -52, 76);
-        date = createLabel(screen, "", Theme::FontMedium, Theme::color(Theme::TextTertiary),
-                           LV_ALIGN_TOP_LEFT, 54, 114);
-        clock = createLabel(screen, "", Theme::FontClock, Theme::color(Theme::Text),
-                            LV_ALIGN_TOP_LEFT, 54, 14);
+        header.create(screen);
         status = createLabel(screen, "", Theme::FontLarge, Theme::color(Theme::TextSecondary),
                              LV_ALIGN_TOP_MID, 0, 166);
         height = createLabel(screen, "", Theme::FontHeight, Theme::color(Theme::Text),
@@ -594,11 +593,14 @@ public:
                                        LV_ALIGN_TOP_MID, 330, footerSummaryY);
     }
 
+    void refreshClock() override
+    {
+        header.refresh();
+    }
+
     void refresh(const TideSnapshot &tide) override
     {
-        lv_label_set_text(clock, ClockService::getTime().c_str());
-        const String dateText = ClockService::getWeekday() + ", " + ClockService::getDate();
-        lv_label_set_text(date, dateText.c_str());
+        refreshClock();
         lv_label_set_text(status, stateText(tide));
         setCurrentHeight(height, tide, false);
         graph.refresh(tide);
@@ -635,8 +637,7 @@ public:
     }
 
 private:
-    lv_obj_t *date = nullptr;
-    lv_obj_t *clock = nullptr;
+    HomeHeader header;
     lv_obj_t *status = nullptr;
     lv_obj_t *height = nullptr;
     lv_obj_t *journey = nullptr;
@@ -670,9 +671,14 @@ public:
                                   LV_ALIGN_TOP_MID, 0, footerSummaryY);
     }
 
-    void refresh(const TideSnapshot &tide) override
+    void refreshClock() override
     {
         header.refresh();
+    }
+
+    void refresh(const TideSnapshot &tide) override
+    {
+        refreshClock();
         lv_label_set_text(status, stateText(tide));
         setCurrentHeight(currentHeight, tide, false);
         graph.refresh(tide);
@@ -684,7 +690,7 @@ public:
     }
 
 private:
-    ModernHeader header;
+    HomeHeader header;
     lv_obj_t *status = nullptr;
     lv_obj_t *currentHeight = nullptr;
     lv_obj_t *nextType = nullptr;
@@ -728,9 +734,14 @@ public:
                                        LV_ALIGN_TOP_MID, 330, footerSummaryY);
     }
 
-    void refresh(const TideSnapshot &tide) override
+    void refreshClock() override
     {
         header.refresh();
+    }
+
+    void refresh(const TideSnapshot &tide) override
+    {
+        refreshClock();
         const TideEvent &next = nextEvent(tide);
         if (next.valid)
         {
@@ -765,7 +776,7 @@ public:
     }
 
 private:
-    ModernHeader header;
+    HomeHeader header;
     lv_obj_t *status = nullptr;
     lv_obj_t *height = nullptr;
     lv_obj_t *previous = nullptr;

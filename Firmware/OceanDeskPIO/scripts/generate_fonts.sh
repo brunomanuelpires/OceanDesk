@@ -81,7 +81,11 @@ generate_medium_font () {
 
 generate_medium_font 14
 generate_medium_font 20
+generate_medium_font 21
+generate_medium_font 24
 generate_medium_font 30
+generate_medium_font 44
+generate_medium_font 48
 
 echo "Generating montserrat_18_bold..."
 npx lv_font_conv \

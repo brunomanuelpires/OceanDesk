@@ -6,6 +6,7 @@
 #include "AlarmService.h"
 #include "BuzzerService.h"
 #include "ConfigService.h"
+#include "DeviceIdentity.h"
 #include "WiFiService.h"
 #include "core/TimeOfDay.h"
 #include "locations/BeachCatalog.h"
@@ -66,6 +67,12 @@ String tideModelLabel(const String &modelId)
 {
     const BeachCatalog::TideModel *model = BeachCatalog::findTideModel(modelId.c_str());
     return model != nullptr ? String(model->displayName) : modelId;
+}
+
+String systemPageStyles()
+{
+    return R"HTML(<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,sans-serif;background:#0b1620;color:#fff}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}main{width:min(100%,520px);background:#132430;border:1px solid #20313e;border-radius:22px;padding:30px;box-sizing:border-box}h1{margin:0 0 8px;font-size:30px}p{color:#a9bfcc;line-height:1.5}.system{margin:22px 0;border:1px solid #20313e;border-radius:14px;overflow:hidden}.item{padding:13px 15px;background:#0b1620;border-bottom:1px solid #20313e;color:#a9bfcc;font-size:13px}.item:last-child{border-bottom:0}.item strong{display:block;color:#fff;margin-top:4px;font-size:16px;word-break:break-word}a{display:block;text-align:center;border:0;border-radius:12px;background:#55c9f3;color:#08202b;padding:14px;font-size:16px;font-weight:750;text-decoration:none}</style>)HTML";
 }
 
 void appendBeachOptions(String &page, const DeviceConfig &config)
@@ -172,9 +179,40 @@ String buildPage()
     page += R"HTML(>50% — alto</option></select><div class="hint">À noite o OceanDesk reduz visualmente a luminosidade. O controlo físico desta placa é apenas ligado/desligado.</div>
 <label>Cores de texto</label><div class="color-roles"><label>Principal<input name="text_primary" type="color" value=")HTML";
     page += colorValue(config.textColor) + "\"></label><label>Secundário<input name=\"text_secondary\" type=\"color\" value=\"" + colorValue(config.secondaryTextColor) + "\"></label><label>Terciário<input name=\"text_tertiary\" type=\"color\" value=\"" + colorValue(config.tertiaryTextColor) + "\"></label></div><div class=\"hint\">Principal: hora, altura e horas dos eventos. Secundário: estado, eventos e localização. Terciário: data, ZH e etiquetas.</div><label>Cor de fundo</label><input name=\"background_color\" type=\"color\" value=\"" + colorValue(config.backgroundColor) + "\">";
-    page += R"HTML(<button type="submit">Guardar alterações</button></form></main><script>document.querySelector('[name=display_style]').value=")HTML";
+    page += R"HTML(<button type="submit">Guardar alterações</button></form><p class="hint"><a href="/system">Sistema</a></p></main><script>document.querySelector('[name=display_style]').value=")HTML";
     page += ConfigService::displayStyleName(config.displayStyle);
     page += R"HTML(";const beach=document.getElementById('beach_id');function syncLocation(){const option=beach.selectedOptions[0];document.getElementById('tide_model').textContent=option?.dataset.station||'—';document.getElementById('location_timezone').textContent=option?.dataset.timezone||'—'}beach.addEventListener('change',syncLocation);syncLocation();const notice=document.getElementById('saved-notice');if(notice){setTimeout(()=>{notice.style.opacity='0';setTimeout(()=>notice.remove(),250)},4000)}if(location.search)history.replaceState({},'',location.pathname);</script></body></html>)HTML";
+    return page;
+}
+
+String buildSystemPage()
+{
+    const DeviceConfig &config = ConfigService::get();
+    const DeviceIdentity &identity = DeviceIdentityService::get();
+    const unsigned long uptimeSeconds = millis() / 1000UL;
+    char uptime[32];
+    snprintf(uptime, sizeof(uptime), "%lud %02luh %02lum",
+             uptimeSeconds / 86400UL, (uptimeSeconds / 3600UL) % 24UL,
+             (uptimeSeconds / 60UL) % 60UL);
+
+    String page = R"HTML(<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sistema — OceanDesk</title>)HTML";
+    page += systemPageStyles();
+    page += R"HTML(</head><body><main><h1>Sistema</h1><p>Informação de identificação e estado deste OceanDesk.</p><div class="system">)HTML";
+    const auto item = [&page](const char *label, const String &value) {
+        page += "<div class=\"item\">";
+        page += label;
+        page += "<strong>" + escapeHtml(value) + "</strong></div>";
+    };
+    item(identity.serialProvisioned ? "Número de série" : "Número de série (teste)", identity.serialNumber);
+    item("ID do dispositivo", identity.deviceId);
+    item("Firmware", identity.firmwareVersion);
+    item("Modelo", identity.hardwareModel);
+    item("Praia ativa", config.beachName.isEmpty() ? String("Ainda não configurada") : config.beachName);
+    item("Modelo / estação de maré", tideModelLabel(config.tideStation));
+    item("Wi-Fi", WiFiService::statusLabel());
+    item("Tempo ligado", uptime);
+    item("Motivo do último arranque", DeviceIdentityService::restartReason());
+    page += R"HTML(</div><a href="/">Voltar às definições</a></main></body></html>)HTML";
     return page;
 }
 
@@ -298,6 +336,7 @@ void handleConfigure()
 void SetupWebService::begin()
 {
     server.on("/", HTTP_GET, []() { server.sendHeader("Cache-Control", "no-store"); server.send(200, "text/html; charset=utf-8", buildPage()); });
+    server.on("/system", HTTP_GET, []() { server.sendHeader("Cache-Control", "no-store"); server.send(200, "text/html; charset=utf-8", buildSystemPage()); });
     server.on("/configure", HTTP_POST, handleConfigure);
     server.onNotFound([]() {
         const String host = WiFiService::isSetupMode() ? WiFiService::setupAddress() : "oceandesk.local";

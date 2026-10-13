@@ -11,6 +11,7 @@
 #include "core/EventDispatcher.h"
 #include "services/TideService.h"
 #include "services/ConfigService.h"
+#include "services/DeviceIdentity.h"
 #include "services/BuzzerService.h"
 #include "services/AlarmService.h"
 #include "services/SetupWebService.h"
@@ -76,6 +77,13 @@ void setup()
     }
 
     ConfigService::begin();
+    DeviceIdentityService::begin();
+#ifdef OCEANDESK_PROVISION_SERIAL
+    if (!DeviceIdentityService::provisionSerialNumber(OCEANDESK_PROVISION_SERIAL))
+    {
+        Serial.println("Identity: invalid production serial");
+    }
+#endif
     const DeviceConfig &config = ConfigService::get();
     // Restore retained time before creating the UI or tide snapshot.
     ClockService::begin();
@@ -138,10 +146,10 @@ void loop()
         WiFiService::update();
         ClockService::update();
         NTPService::update();
-        TideService::update();
+        const bool tideSnapshotChanged = TideService::update();
 
         lvgl_port_lock(-1);
-        EventDispatcher::refresh();
+        EventDispatcher::refresh(tideSnapshotChanged);
         lvgl_port_unlock();
     }
 

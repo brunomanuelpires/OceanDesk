@@ -76,7 +76,7 @@ void TideService::begin()
     refreshSnapshot(time(nullptr));
 }
 
-void TideService::update()
+bool TideService::update()
 {
     unsigned long now = millis();
 
@@ -86,7 +86,10 @@ void TideService::update()
     {
         lastUpdate = now;
         refreshSnapshot(timestampUtc);
+        return true;
     }
+
+    return false;
 }
 
 TideSnapshot TideService::getSnapshot()

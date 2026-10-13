@@ -5,5 +5,5 @@ class EventDispatcher
 public:
     static void begin();
 
-    static void refresh();
+    static void refresh(bool tideSnapshotChanged);
 };

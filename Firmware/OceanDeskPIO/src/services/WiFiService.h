@@ -11,6 +11,7 @@ public:
     static bool isConnected();
     static bool isOffline();
     static bool isSetupMode();
+    static const char *statusLabel();
     static const char *setupNetworkName();
     static const char *setupAddress();
 };
