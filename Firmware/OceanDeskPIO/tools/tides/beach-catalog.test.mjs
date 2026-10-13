@@ -11,8 +11,8 @@ const [catalog, stationDataset] = await Promise.all([
 test("validates every catalog beach against an embedded, nearest tide model", () => {
   const validated = validateBeachCatalog(catalog, stationDataset);
 
-  assert.equal(validated.beaches.length, 22);
-  assert.deepEqual(validated.tideModels.map(({ id }) => id), ["nazare", "peniche"]);
+  assert.equal(validated.beaches.length, 29);
+  assert.deepEqual(validated.tideModels.map(({ id }) => id), ["nazare", "peniche", "cascais"]);
   assert.ok(validated.beaches.every(({ area }) => area === "mainland"));
   assert.ok(validated.beaches.every(({ mappedDistanceKm }) => mappedDistanceKm <= 45));
 });
@@ -40,6 +40,19 @@ test("unlocks the reviewed Peniche beaches after model validation", () => {
   assert.ok(penicheBeaches.every(({ region }) => region === "Peniche"));
   assert.ok(penicheBeaches.every(({ mappedDistanceKm }) => mappedDistanceKm <= 3.4));
   assert.equal(validated.beaches.filter(({ tideModelId }) => tideModelId === "nazare").length, 14);
+});
+
+test("unlocks the reviewed Cascais/Lisbon coast after primary-port validation", () => {
+  const validated = validateBeachCatalog(catalog, stationDataset);
+  const cascais = validated.tideModels.find(({ id }) => id === "cascais");
+  const beaches = validated.beaches.filter(({ tideModelId }) => tideModelId === "cascais");
+
+  assert.equal(cascais?.stationId, "ticon/cascais-209-prt-uhslc_fd");
+  assert.equal(cascais?.firmwareSupported, true);
+  assert.deepEqual(beaches.map(({ id }) => id), [
+    "cascais-ribeira", "rainha", "conceicao", "tamariz", "carcavelos", "guincho", "adraga",
+  ]);
+  assert.ok(beaches.every(({ mappedDistanceKm }) => mappedDistanceKm <= 18));
 });
 
 test("keeps island areas valid without claiming unsupported beach mappings", () => {

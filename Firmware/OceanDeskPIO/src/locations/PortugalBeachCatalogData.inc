@@ -2,6 +2,7 @@
 constexpr TideModel tideModels[] = {
     {"nazare", "ticon/nazaretg-naz-prt-cmems", "Nazaré", GeographicArea::Mainland, 39.585999, -9.074, "WET0WEST,M3.5.0/1,M10.5.0", true},
     {"peniche", "ticon/penichetg-pen-prt-cmems", "Peniche", GeographicArea::Mainland, 39.354, -9.367, "WET0WEST,M3.5.0/1,M10.5.0", true},
+    {"cascais", "ticon/cascais-209-prt-uhslc_fd", "Cascais", GeographicArea::Mainland, 38.692, -9.417, "WET0WEST,M3.5.0/1,M10.5.0", true},
 };
 
 constexpr BeachLocation beaches[] = {
@@ -27,4 +28,11 @@ constexpr BeachLocation beaches[] = {
     {"molhe-leste", "Praia do Molhe Leste", "Molhe Leste", "Peniche", "Portugal", GeographicArea::Mainland, 39.35001, -9.368, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
     {"medao-supertubos", "Praia do Medão-Supertubos", "Supertubos", "Peniche", "Portugal", GeographicArea::Mainland, 39.34536, -9.36441, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
     {"consolacao", "Praia da Consolação", "Consolação", "Peniche", "Portugal", GeographicArea::Mainland, 39.324337, -9.358564, "peniche", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"cascais-ribeira", "Praia da Ribeira de Cascais", "Ribeira de Cascais", "Cascais", "Portugal", GeographicArea::Mainland, 38.6959, -9.4203, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"rainha", "Praia da Rainha", "Rainha", "Cascais", "Portugal", GeographicArea::Mainland, 38.6972, -9.4212, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"conceicao", "Praia da Conceição", "Conceição", "Cascais", "Portugal", GeographicArea::Mainland, 38.6981, -9.4205, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"tamariz", "Praia do Tamariz", "Tamariz", "Cascais", "Portugal", GeographicArea::Mainland, 38.7047, -9.397, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"carcavelos", "Praia de Carcavelos", "Carcavelos", "Cascais", "Portugal", GeographicArea::Mainland, 38.6786, -9.3383, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"guincho", "Praia do Guincho", "Guincho", "Cascais", "Portugal", GeographicArea::Mainland, 38.7335, -9.4735, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
+    {"adraga", "Praia da Adraga", "Adraga", "Sintra", "Portugal", GeographicArea::Mainland, 38.8027, -9.467, "cascais", "WET0WEST,M3.5.0/1,M10.5.0"},
 };

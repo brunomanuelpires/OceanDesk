@@ -5,6 +5,8 @@
 #include "NazareTideDatum.h"
 #include "PenicheTideData.h"
 #include "PenicheTideDatum.h"
+#include "CascaisTideData.h"
+#include "CascaisTideDatum.h"
 
 namespace TideModelRegistry
 {
@@ -26,6 +28,14 @@ constexpr TideRuntimeModel models[] = {
         39.354,
         -9.367,
         TideDatum::penicheMeanLevelAboveHydrographicZeroMeters,
+    },
+    {
+        "cascais",
+        &TideDevelopmentData::cascais,
+        "Cascais",
+        38.692,
+        -9.417,
+        TideDatum::cascaisMeanLevelAboveHydrographicZeroMeters,
     },
 };
 }

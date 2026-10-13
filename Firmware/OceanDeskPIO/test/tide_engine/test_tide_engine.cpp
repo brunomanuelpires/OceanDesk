@@ -2,6 +2,8 @@
 #include "tides/data/NazareTideData.h"
 #include "tides/data/PenicheTideData.h"
 #include "tides/data/TideModelRegistry.h"
+#include "tides/data/CascaisTideDatum.h"
+#include "tides/data/CascaisTideData.h"
 
 #include <algorithm>
 #include <cassert>
@@ -165,6 +167,11 @@ int main()
     assert(std::strcmp(penicheModel->station->id, "ticon/penichetg-pen-prt-cmems") == 0);
     expectNear(TideModelRegistry::heightAboveHydrographicZero(*penicheModel, 1.0), 3.0, 0.0);
     assert(TideModelRegistry::find("unsupported") == nullptr);
+    const TideRuntimeModel *cascaisModel = TideModelRegistry::find("cascais");
+    assert(cascaisModel != nullptr);
+    assert(cascaisModel->station == &TideDevelopmentData::cascais);
+    assert(std::strcmp(cascaisModel->station->id, "ticon/cascais-209-prt-uhslc_fd") == 0);
+    expectNear(TideModelRegistry::heightAboveHydrographicZero(*cascaisModel, 1.0), 3.08, 0.0);
     assert(TideModelRegistry::defaultModel().station == &TideDevelopmentData::nazare);
 
     const TideHarmonicStation empty = {"empty", "Empty", "test", "test", nullptr, 0, true};

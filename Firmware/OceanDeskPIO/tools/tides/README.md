@@ -16,6 +16,7 @@ npm run tides:portugal -- --json
 npm run tides:portugal -- --output tools/tides/generated/portugal-stations.json
 npm run tides:generate-nazare
 npm run tides:generate-peniche
+npm run tides:generate-cascais
 npm run tides:generate-beach-catalog
 npm run test:tides
 ```
@@ -72,11 +73,15 @@ and the Associação Bandeira Azul records for
 [Cova da Alfarroba](https://bandeiraazul.abaae.pt/local-galardoado/cova-da-alfarroba/).
 These references were retrieved on 2026-09-14.
 
+Cascais, Rainha, Conceição, Tamariz, Carcavelos, Guincho and Adraga are enabled
+only after the Cascais primary-port validation below. Their catalog coordinates
+all select Cascais as the nearest inventory station, at distances below 18 km.
+
 ## ESP32 development engine
 
-`src/tides/data/NazareTideData.h/.cpp` and
-`src/tides/data/PenicheTideData.h/.cpp` are generated from the normalized JSON by
-`npm run tides:generate-nazare` and `npm run tides:generate-peniche`. Each
+`src/tides/data/NazareTideData.h/.cpp`, `src/tides/data/PenicheTideData.h/.cpp`
+and `src/tides/data/CascaisTideData.h/.cpp` are generated from the normalized
+JSON by their corresponding `tides:generate-*` command. Each
 generator embeds all 50 constituents, resolves their Doodson coefficients
 through the pinned `@neaps/tide-predictor` definitions, and keeps the same eight
 major constituents first to support host-side 8-versus-50 regression checks.
@@ -88,6 +93,12 @@ published through the pinned `@neaps/tide-database@0.9.20260801`. Both retain th
 upstream GESLA restriction and are licensed **CC BY-NC 4.0**, which forbids
 commercial use. They must be replaced by commercially distributable station
 data before any commercial firmware or product distribution.
+
+Cascais is the TICON-4 record `cascais-209-prt-uhslc_fd`, distributed through
+the same pinned Neaps database as **CC BY 4.0** with `commercialUse: true`; its
+attribution and licence are embedded with the model. This does not clear the
+commercial blocker for a product that also distributes the Nazaré or Peniche
+datasets.
 
 The engine returns the astronomical height anomaly in metres relative to mean
 sea level (MSL). `TidePrediction` derives the current trend and the surrounding
@@ -184,6 +195,8 @@ Baseline results for the current engine (eight events per station):
 | Nazaré | Height relative to ZH | -0.07 m | 0.11 m | 0.07 m |
 | Peniche | Event time | -1.55 min | 2.57 min | 1.67 min |
 | Peniche | Height relative to ZH | +0.01 m | 0.08 m | 0.05 m |
+| Cascais | Event time | +4.67 min | 6.34 min | 4.73 min |
+| Cascais | Height relative to ZH | +0.06 m | 0.09 m | 0.06 m |
 
 Positive time error means OceanDesk is later; negative height error means it is
 lower. The regression gates are deliberately visible: maximum timing error no

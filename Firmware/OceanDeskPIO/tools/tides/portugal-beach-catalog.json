@@ -17,6 +17,14 @@
       "area": "mainland",
       "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
       "firmwareSupported": true
+    },
+    {
+      "id": "cascais",
+      "stationId": "ticon/cascais-209-prt-uhslc_fd",
+      "displayName": "Cascais",
+      "area": "mainland",
+      "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
+      "firmwareSupported": true
     }
   ],
   "beaches": [
@@ -261,6 +269,83 @@
       "latitude": 39.324337,
       "longitude": -9.358564,
       "tideModelId": "peniche"
+    },
+    {
+      "id": "cascais-ribeira",
+      "displayName": "Praia da Ribeira de Cascais",
+      "shortName": "Ribeira de Cascais",
+      "region": "Cascais",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.6959,
+      "longitude": -9.4203,
+      "tideModelId": "cascais"
+    },
+    {
+      "id": "rainha",
+      "displayName": "Praia da Rainha",
+      "shortName": "Rainha",
+      "region": "Cascais",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.6972,
+      "longitude": -9.4212,
+      "tideModelId": "cascais"
+    },
+    {
+      "id": "conceicao",
+      "displayName": "Praia da Conceição",
+      "shortName": "Conceição",
+      "region": "Cascais",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.6981,
+      "longitude": -9.4205,
+      "tideModelId": "cascais"
+    },
+    {
+      "id": "tamariz",
+      "displayName": "Praia do Tamariz",
+      "shortName": "Tamariz",
+      "region": "Cascais",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.7047,
+      "longitude": -9.397,
+      "tideModelId": "cascais"
+    },
+    {
+      "id": "carcavelos",
+      "displayName": "Praia de Carcavelos",
+      "shortName": "Carcavelos",
+      "region": "Cascais",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.6786,
+      "longitude": -9.3383,
+      "tideModelId": "cascais"
+    },
+    {
+      "id": "guincho",
+      "displayName": "Praia do Guincho",
+      "shortName": "Guincho",
+      "region": "Cascais",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.7335,
+      "longitude": -9.4735,
+      "tideModelId": "cascais"
+    },
+    {
+      "id": "adraga",
+      "displayName": "Praia da Adraga",
+      "shortName": "Adraga",
+      "region": "Sintra",
+      "country": "Portugal",
+      "area": "mainland",
+      "latitude": 38.8027,
+      "longitude": -9.467,
+      "tideModelId": "cascais"
     }
   ]
 }

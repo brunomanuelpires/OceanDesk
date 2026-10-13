@@ -30,3 +30,16 @@ ${CXX:-c++} \
     -o "$build_dir/test_tide_engine_peniche_external"
 
 "$build_dir/test_tide_engine_peniche_external"
+
+${CXX:-c++} \
+    -std=c++17 \
+    -Wall \
+    -Wextra \
+    -Werror \
+    -I "$project_dir/src" \
+    "$project_dir/src/tides/TideEngine.cpp" \
+    "$project_dir/src/tides/data/CascaisTideData.cpp" \
+    "$project_dir/test/tide_engine/test_tide_engine_cascais_external.cpp" \
+    -o "$build_dir/test_tide_engine_cascais_external"
+
+"$build_dir/test_tide_engine_cascais_external"

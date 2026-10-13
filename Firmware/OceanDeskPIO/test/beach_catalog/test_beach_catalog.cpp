@@ -9,8 +9,8 @@ using namespace BeachCatalog;
 
 int main()
 {
-    assert(beachCount() == 22);
-    assert(tideModelCount() == 2);
+    assert(beachCount() == 29);
+    assert(tideModelCount() == 3);
     assert(std::strcmp(defaultBeach().id, "agua-de-madeiros") == 0);
     assert(std::strcmp(screenName(defaultBeach()), "Água de Madeiros") == 0);
 
@@ -35,6 +35,10 @@ int main()
     assert(peniche != nullptr);
     assert(peniche->firmwareSupported);
     assert(std::strcmp(peniche->stationId, "ticon/penichetg-pen-prt-cmems") == 0);
+    const TideModel *cascais = findTideModel("cascais");
+    assert(cascais != nullptr);
+    assert(cascais->firmwareSupported);
+    assert(std::strcmp(cascais->stationId, "ticon/cascais-209-prt-uhslc_fd") == 0);
     const char *penicheBeachIds[] = {
         "peniche-de-cima",
         "baleal-sul",
@@ -52,6 +56,16 @@ int main()
         assert(std::strcmp(beach->region, "Peniche") == 0);
         assert(std::strcmp(beach->tideModelId, "peniche") == 0);
         assert(std::strcmp(beach->timezone, peniche->timezone) == 0);
+    }
+    const char *cascaisBeachIds[] = {
+        "cascais-ribeira", "rainha", "conceicao", "tamariz", "carcavelos", "guincho", "adraga",
+    };
+    for (const char *beachId : cascaisBeachIds)
+    {
+        const BeachLocation *beach = findBeach(beachId);
+        assert(beach != nullptr);
+        assert(std::strcmp(beach->tideModelId, "cascais") == 0);
+        assert(std::strcmp(beach->timezone, cascais->timezone) == 0);
     }
     assert(findBeachByLegacyName("Água de Madeiros") == &defaultBeach());
     assert(findBeachByLegacyName("Praia da Água de Madeiros") == &defaultBeach());
