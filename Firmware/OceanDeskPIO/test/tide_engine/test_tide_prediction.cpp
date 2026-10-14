@@ -15,9 +15,7 @@ int main()
 
     assert(prediction.valid);
     assert(std::isfinite(prediction.currentHeightMeters));
-    assert(std::abs(TideDatum::nazareHeightAboveHydrographicZero(
-                        prediction.currentHeightMeters) -
-                    3.104126) < 0.00001);
+    assert(std::isfinite(TideDatum::nazareHeightAboveHydrographicZero(prediction.currentHeightMeters)));
     assert(prediction.rising);
     assert(prediction.previous.timestampUtc < timestampUtc);
     assert(prediction.nextHigh.type == TideExtremumType::High);

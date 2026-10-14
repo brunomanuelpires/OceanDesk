@@ -34,7 +34,7 @@ int main()
     const TideModel *peniche = findTideModel("peniche");
     assert(peniche != nullptr);
     assert(peniche->firmwareSupported);
-    assert(std::strcmp(peniche->stationId, "ticon/penichetg-pen-prt-cmems") == 0);
+    assert(std::strcmp(peniche->stationId, "fes2022/peniche") == 0);
     const TideModel *cascais = findTideModel("cascais");
     assert(cascais != nullptr);
     assert(cascais->firmwareSupported);

@@ -22,7 +22,8 @@ test("unlocks the reviewed Peniche beaches after model validation", () => {
   const peniche = validated.tideModels.find(({ id }) => id === "peniche");
   const penicheBeaches = validated.beaches.filter(({ tideModelId }) => tideModelId === "peniche");
 
-  assert.equal(peniche?.stationId, "ticon/penichetg-pen-prt-cmems");
+  assert.equal(peniche?.stationId, "fes2022/peniche");
+  assert.equal(peniche?.inventoryStationId, "ticon/penichetg-pen-prt-cmems");
   assert.equal(peniche?.firmwareSupported, true);
   assert.deepEqual(
     penicheBeaches.map(({ id }) => id),

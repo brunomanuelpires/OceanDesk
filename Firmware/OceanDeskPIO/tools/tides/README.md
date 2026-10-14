@@ -14,8 +14,7 @@ npm run tides:portugal
 npm run tides:portugal -- --nearest 5
 npm run tides:portugal -- --json
 npm run tides:portugal -- --output tools/tides/generated/portugal-stations.json
-npm run tides:generate-nazare
-npm run tides:generate-peniche
+npm run tides:generate-fes2022
 npm run tides:generate-cascais
 npm run tides:generate-beach-catalog
 npm run test:tides
@@ -79,20 +78,27 @@ all select Cascais as the nearest inventory station, at distances below 18 km.
 
 ## ESP32 development engine
 
-`src/tides/data/NazareTideData.h/.cpp`, `src/tides/data/PenicheTideData.h/.cpp`
-and `src/tides/data/CascaisTideData.h/.cpp` are generated from the normalized
-JSON by their corresponding `tides:generate-*` command. Each
-generator embeds all 50 constituents, resolves their Doodson coefficients
-through the pinned `@neaps/tide-predictor` definitions, and keeps the same eight
-major constituents first to support host-side 8-versus-50 regression checks.
-`npm test` also checks that both generated C++ datasets are current.
+`src/tides/data/NazareTideData.h/.cpp` and
+`src/tides/data/PenicheTideData.h/.cpp` are generated from
+`generated/fes2022-portugal-harmonics.json` by `tides:generate-fes2022`.
+The input records bilinear, complex-vector interpolation of the 34 FES2022b
+ocean-tide-extrapolated constituents at each firmware model coordinate.
+The generator resolves Doodson coefficients and IHO nodal terms with the pinned
+MIT-licensed `@neaps/tide-predictor` definitions; it does not use its station
+data. The first eight major constituents remain first for regression coverage.
 
-Nazaré and Peniche are strictly development stations. Their records are
-`ticon/nazaretg-naz-prt-cmems` and `ticon/penichetg-pen-prt-cmems` from TICON-4,
-published through the pinned `@neaps/tide-database@0.9.20260801`. Both retain the
-upstream GESLA restriction and are licensed **CC BY-NC 4.0**, which forbids
-commercial use. They must be replaced by commercially distributable station
-data before any commercial firmware or product distribution.
+Nazaré and Peniche use **FES2022b ocean-tide-extrapolated** harmonics obtained
+from AVISO. Under the AVISO Licence, adapted/derivative works may be used and
+shared commercially; unmodified operational redistribution of the original
+bulk product remains restricted. OceanDesk embeds only the interpolated
+derivative harmonic coefficients, not the original grids. Every distribution
+must retain this attribution: *“The FES2022 Tide product was funded by CNES,
+produced by LEGOS, NOVELTIS and CLS and made freely available by AVISO.”*
+
+The former TICON-4/Neaps records for Nazaré and Peniche were CC BY-NC 4.0 and
+are no longer embedded or used by the firmware. They remain in the normalized
+Neaps inventory solely as an independent nearest-station guard for the beach
+catalog, not as a harmonic source.
 
 Cascais is the TICON-4 record `cascais-209-prt-uhslc_fd`, distributed through
 the same pinned Neaps database as **CC BY 4.0** with `commercialUse: true`; its
@@ -168,15 +174,11 @@ the publication instructs:
   both list an adopted mean level of 2.00 m above ZH, so the test compares
   `OceanDesk MSL anomaly + 2.00 m` with the concordance-derived ZH height.
 
-The upstream TICON-4/Neaps station metadata names `LAT` as its chart datum and
-contains observed datum levels, but the generated firmware deliberately embeds
-only harmonic amplitudes and phases. Their sum is a zero-mean astronomical
-anomaly, not an absolute LAT height. Adding the independently published IH
-Nazaré mean level aligns that anomaly with the table's ZH solely for this
-comparison; it is not a general MSL/LAT/ZH conversion and is not fitted to the
-validation results. The 50-constituent development dataset is the TICON-4
-`nazaretg-naz-prt-cmems` record (observation epoch 2014-09-20 to 2025-06-30),
-distributed through the pinned Neaps database under CC BY-NC 4.0.
+The generated firmware embeds only harmonic amplitudes and phases. Their sum is
+a zero-mean astronomical anomaly, not an absolute LAT height. Adding the
+independently published IH Nazaré mean level aligns that anomaly with the
+table's ZH solely for this comparison; it is not a general MSL/LAT/ZH
+conversion and is not fitted to the validation results.
 
 Each test keeps eight events (four high waters and four low waters) over 48 hours.
 It locates the nearby OceanDesk extremum on a one-minute grid and refines it
@@ -191,10 +193,10 @@ Baseline results for the current engine (eight events per station):
 
 | Station | Quantity | Signed mean error | Maximum absolute error | RMSE |
 | --- | --- | ---: | ---: | ---: |
-| Nazaré | Event time | +7.26 min | 9.49 min | 7.50 min |
-| Nazaré | Height relative to ZH | -0.07 m | 0.11 m | 0.07 m |
-| Peniche | Event time | -1.55 min | 2.57 min | 1.67 min |
-| Peniche | Height relative to ZH | +0.01 m | 0.08 m | 0.05 m |
+| Nazaré | Event time | +4.69 min | 6.86 min | 4.94 min |
+| Nazaré | Height relative to ZH | -0.04 m | 0.07 m | 0.04 m |
+| Peniche | Event time | -0.43 min | 1.38 min | 0.67 min |
+| Peniche | Height relative to ZH | +0.04 m | 0.07 m | 0.05 m |
 | Cascais | Event time | +4.67 min | 6.34 min | 4.73 min |
 | Cascais | Height relative to ZH | +0.06 m | 0.09 m | 0.06 m |
 
@@ -205,5 +207,6 @@ RMSE no greater than 0.10 m. These gates detect material regressions but do not
 erase or reinterpret the systematic offsets above.
 
 This check does not compare continuous hourly curves, observations, weather,
-waves or storm surge. The embedded Nazaré and Peniche harmonics and these
-fixtures remain development-only; the harmonic source licence is CC BY-NC 4.0.
+waves or storm surge. The FES2022-derived harmonics satisfy the source licence
+requirements for commercial distribution when the required AVISO attribution is
+retained.

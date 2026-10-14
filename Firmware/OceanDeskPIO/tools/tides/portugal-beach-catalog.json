@@ -4,17 +4,23 @@
   "tideModels": [
     {
       "id": "nazare",
-      "stationId": "ticon/nazaretg-naz-prt-cmems",
+      "stationId": "fes2022/nazare",
+      "inventoryStationId": "ticon/nazaretg-naz-prt-cmems",
       "displayName": "Nazaré",
       "area": "mainland",
+      "latitude": 39.585999,
+      "longitude": -9.074,
       "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
       "firmwareSupported": true
     },
     {
       "id": "peniche",
-      "stationId": "ticon/penichetg-pen-prt-cmems",
+      "stationId": "fes2022/peniche",
+      "inventoryStationId": "ticon/penichetg-pen-prt-cmems",
       "displayName": "Peniche",
       "area": "mainland",
+      "latitude": 39.354,
+      "longitude": -9.367,
       "timezone": "WET0WEST,M3.5.0/1,M10.5.0",
       "firmwareSupported": true
     },

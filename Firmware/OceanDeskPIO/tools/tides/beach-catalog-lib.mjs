@@ -51,13 +51,21 @@ export function validateBeachCatalog(catalog, stationDataset) {
     if (model.firmwareSupported !== true) {
       throw new Error(`${model.id} is catalogued but not supported by the firmware`);
     }
-    const station = stationsById.get(model.stationId);
-    if (!station) throw new Error(`${model.id} references unknown station ${model.stationId}`);
+    const inventoryStationId = model.inventoryStationId ?? model.stationId;
+    const station = stationsById.get(inventoryStationId);
+    if (!station) throw new Error(`${model.id} references unknown inventory station ${inventoryStationId}`);
     requireCoordinates(station, `station ${model.stationId}`);
     if (model.timezone !== POSIX_TIMEZONES[model.area]) {
       throw new Error(`${model.id} has a timezone that does not match ${model.area}`);
     }
-    const normalized = { ...model, latitude: station.latitude, longitude: station.longitude };
+    const hasExplicitCoordinates = model.latitude !== undefined || model.longitude !== undefined;
+    if (hasExplicitCoordinates) requireCoordinates(model, `model ${model.id}`);
+    const normalized = {
+      ...model,
+      inventoryStationId,
+      latitude: hasExplicitCoordinates ? model.latitude : station.latitude,
+      longitude: hasExplicitCoordinates ? model.longitude : station.longitude,
+    };
     modelsById.set(model.id, normalized);
     return normalized;
   });
@@ -83,8 +91,8 @@ export function validateBeachCatalog(catalog, stationDataset) {
       .map((station) => ({ station, distanceKm: haversineDistanceKm(beach, station) }))
       .sort((left, right) => left.distanceKm - right.distanceKm)[0];
     const mappedDistanceKm = haversineDistanceKm(beach, model);
-    if (nearest?.station.id !== model.stationId) {
-      throw new Error(`${beach.id} maps to ${model.stationId}, but ${nearest?.station.id} is nearer`);
+    if (nearest?.station.id !== model.inventoryStationId) {
+      throw new Error(`${beach.id} maps to ${model.inventoryStationId}, but ${nearest?.station.id} is nearer`);
     }
     if (mappedDistanceKm > catalog.maximumStationDistanceKm) {
       throw new Error(`${beach.id} is ${mappedDistanceKm.toFixed(1)} km from ${model.displayName}`);
