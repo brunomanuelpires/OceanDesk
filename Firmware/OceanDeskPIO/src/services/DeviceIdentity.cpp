@@ -84,6 +84,14 @@ const DeviceIdentity &DeviceIdentityService::get()
 bool DeviceIdentityService::provisionSerialNumber(const String &serialNumber)
 {
     if (!initialized || !isValidSerialNumber(serialNumber)) return false;
+    // A production serial is deliberately write-once. Rebuilding a provisioning
+    // image with the wrong serial must not relabel an already tested unit.
+    const String storedSerial = preferences.getString(serialNumberKey, "");
+    if (isValidSerialNumber(storedSerial) && storedSerial != serialNumber)
+    {
+        Serial.println("Identity: refusing to replace provisioned serial");
+        return false;
+    }
     if (preferences.putString(serialNumberKey, serialNumber) != serialNumber.length()) return false;
     identity.serialNumber = serialNumber;
     identity.serialProvisioned = true;

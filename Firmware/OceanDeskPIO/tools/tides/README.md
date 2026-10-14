@@ -210,3 +210,7 @@ This check does not compare continuous hourly curves, observations, weather,
 waves or storm surge. The FES2022-derived harmonics satisfy the source licence
 requirements for commercial distribution when the required AVISO attribution is
 retained.
+
+The release-facing source, licence, attribution and IH validation record is in
+[`docs/TIDE_DATA_ATTRIBUTION.md`](../../docs/TIDE_DATA_ATTRIBUTION.md). Raw AVISO
+downloads remain in `DOWNLOADS/` outside version control.
